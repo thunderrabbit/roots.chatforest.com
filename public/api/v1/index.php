@@ -13,14 +13,25 @@ if ($_SERVER["REQUEST_METHOD"] === "OPTIONS") {
     exit;
 }
 
-// Health check — no auth required
 $path = trim(parse_url($_SERVER["REQUEST_URI"], PHP_URL_PATH), "/");
-if ($path === "api/v1/health") {
+$segments = explode("/", $path);
+$resource = $segments[2] ?? "";
+
+$pdo = \Database\Base::getPDO($config);
+
+// Health check — no auth required
+if ($resource === "health") {
     echo json_encode(["status" => "ok", "service" => "roots.chatforest.com", "time" => gmdate("c")]);
     exit;
 }
 
-// Auth via API key
+// Bootstrap — no auth required (creates first account + actor + key)
+if ($resource === "bootstrap" && $_SERVER["REQUEST_METHOD"] === "POST") {
+    include __DIR__ . "/_bootstrap.php";
+    exit;
+}
+
+// === Auth required for everything below ===
 $raw_key = $_SERVER["HTTP_X_API_KEY"] ?? "";
 if (empty($raw_key)) {
     http_response_code(401);
@@ -28,45 +39,47 @@ if (empty($raw_key)) {
     exit;
 }
 
-$pdo = \Database\Base::getPDO($config);
 $auth = new \Auth\ApiKey($pdo);
-$auth_user_id = $auth->validateKey($raw_key);
+$auth_account_id = $auth->validateKey($raw_key);
 
-if ($auth_user_id === null) {
+if ($auth_account_id === null) {
     http_response_code(401);
     echo json_encode(["error" => "Invalid API key"]);
     exit;
 }
 
 $auth_key_id = $auth->getLastKeyId();
-$auth_aiu_id = $auth->getLastAiuId();
+$auth_actor_id = $auth->getLastActorId();
 
 // Look up actor details
 $actor_stmt = $pdo->prepare(
-    "SELECT aiu_id, name, actor_type, can_read_inbox, can_write_inbox
-     FROM agent_inbox_user WHERE aiu_id = ? AND user_id = ?"
+    "SELECT a.actor_id, a.account_id, a.name, a.actor_type,
+            a.can_read_inbox, a.can_write_inbox, a.public_key
+     FROM actors a
+     WHERE a.actor_id = ? AND a.account_id = ? AND a.is_active = 1"
 );
-$actor_stmt->execute([$auth_aiu_id, $auth_user_id]);
+$actor_stmt->execute([$auth_actor_id, $auth_account_id]);
 $auth_actor = $actor_stmt->fetch(\PDO::FETCH_ASSOC);
 
 if (!$auth_actor) {
     http_response_code(403);
-    echo json_encode(["error" => "No actor linked to this API key"]);
+    echo json_encode(["error" => "No active actor linked to this API key"]);
     exit;
 }
 
 // Route to resource handlers
-$segments = explode("/", $path);
-// path = api/v1/{resource}
-$resource = $segments[2] ?? "";
-
 $handler_map = [
-    "inbox" => "_inbox.php",
+    "inbox"  => "_inbox.php",
+    "actors" => "_actors.php",
+    "keys"   => "_keys.php",
 ];
 
 if (isset($handler_map[$resource])) {
     include __DIR__ . "/" . $handler_map[$resource];
 } else {
     http_response_code(404);
-    echo json_encode(["error" => "Unknown resource: " . $resource, "available" => array_keys($handler_map)]);
+    echo json_encode([
+        "error" => "Unknown resource: " . $resource,
+        "available" => array_keys($handler_map),
+    ]);
 }
