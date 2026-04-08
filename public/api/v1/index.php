@@ -72,7 +72,10 @@ $handler_map = [
     "inbox"  => "_inbox.php",
     "actors" => "_actors.php",
     "keys"     => "_keys.php",
-    "notebook" => "_notebook.php",
+    "notebook"   => "_notebook.php",
+    "sessions"   => "_sessions.php",
+    "todos"      => "_todos.php",
+    "activities" => "_activities.php",
 ];
 
 if (isset($handler_map[$resource])) {
