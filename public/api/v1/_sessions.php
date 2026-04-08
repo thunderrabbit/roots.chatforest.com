@@ -1,16 +1,17 @@
 <?php
 /**
- * Session endpoints — track work sessions with encrypted notes
+ * Session lifecycle endpoints — symmetric encryption for notes
  *
- *   GET    /sessions              — list sessions
- *   POST   /sessions              — start a new session
- *   GET    /sessions/{id}         — get single session
- *   PATCH  /sessions/{id}         — update session (end it, add notes)
- *   DELETE /sessions/{id}         — delete session
+ * GET    /sessions              — list sessions (with filters)
+ * GET    /sessions/{id}         — get single session
+ * POST   /sessions              — start a new session
+ * PATCH  /sessions/{id}         — update session (end it, add notes)
+ * DELETE /sessions/{id}         — delete session
  */
 
 $method = $_SERVER["REQUEST_METHOD"];
 $id_param = isset($segments[3]) ? (int)$segments[3] : null;
+
 $notebook_key = \Crypto\Notebook::deriveKey($raw_key);
 $my_actor_id = (int)$auth_actor["actor_id"];
 
@@ -32,32 +33,32 @@ switch ($method) {
                 break;
             }
 
-            $session = [
+            $notes = null;
+            if ($row["notes_ciphertext"] !== null) {
+                $dec = \Crypto\Notebook::decrypt(
+                    $row["notes_ciphertext"], $row["notes_nonce"], $notebook_key
+                );
+                $notes = $dec !== false ? $dec : "[DECRYPTION FAILED]";
+            }
+
+            echo json_encode([
                 "session_id" => (int)$row["session_id"],
                 "status"     => $row["status"],
+                "notes"      => $notes,
                 "started_at" => $row["started_at"],
                 "ended_at"   => $row["ended_at"],
                 "created_at" => $row["created_at"],
-            ];
-
-            if ($row["notes_ciphertext"] !== null) {
-                $notes = \Crypto\Notebook::decrypt(
-                    $row["notes_ciphertext"], $row["notes_nonce"], $notebook_key
-                );
-                $session["notes"] = $notes !== false ? $notes : "[DECRYPTION FAILED]";
-            }
-
-            echo json_encode($session);
+            ]);
         } else {
             // GET /sessions — list
+            $status_filter = $_GET["status"] ?? null;
             $limit = min((int)($_GET["limit"] ?? 50), 100);
             $offset = max((int)($_GET["offset"] ?? 0), 0);
-            $status_filter = $_GET["status"] ?? null;
 
             $where = "actor_id = ?";
             $params = [$my_actor_id];
 
-            if ($status_filter !== null) {
+            if ($status_filter !== null && in_array($status_filter, ["active", "ended"])) {
                 $where .= " AND status = ?";
                 $params[] = $status_filter;
             }
@@ -76,19 +77,20 @@ switch ($method) {
 
             $sessions = [];
             foreach ($rows as $row) {
-                $s = [
+                $notes = null;
+                if ($row["notes_ciphertext"] !== null) {
+                    $dec = \Crypto\Notebook::decrypt(
+                        $row["notes_ciphertext"], $row["notes_nonce"], $notebook_key
+                    );
+                    $notes = $dec !== false ? $dec : "[DECRYPTION FAILED]";
+                }
+                $sessions[] = [
                     "session_id" => (int)$row["session_id"],
                     "status"     => $row["status"],
+                    "notes"      => $notes,
                     "started_at" => $row["started_at"],
                     "ended_at"   => $row["ended_at"],
                 ];
-                if ($row["notes_ciphertext"] !== null) {
-                    $notes = \Crypto\Notebook::decrypt(
-                        $row["notes_ciphertext"], $row["notes_nonce"], $notebook_key
-                    );
-                    $s["notes"] = $notes !== false ? $notes : "[DECRYPTION FAILED]";
-                }
-                $sessions[] = $s;
             }
 
             // Total count
@@ -109,30 +111,31 @@ switch ($method) {
         break;
 
     case "POST":
-        $input = json_decode(file_get_contents("php://input"), true);
+        // Start a new session
+        $input = json_decode(file_get_contents("php://input"), true) ?? [];
         $notes = $input["notes"] ?? null;
-        $started_at = $input["started_at"] ?? gmdate("Y-m-d H:i:s");
 
-        $enc_notes_ct = null;
-        $enc_notes_nonce = null;
+        $notes_ct = null;
+        $notes_nonce = null;
         if ($notes !== null) {
             $enc = \Crypto\Notebook::encrypt($notes, $notebook_key);
-            $enc_notes_ct = $enc["ciphertext"];
-            $enc_notes_nonce = $enc["nonce"];
+            $notes_ct = $enc["ciphertext"];
+            $notes_nonce = $enc["nonce"];
         }
 
         $stmt = $pdo->prepare(
-            "INSERT INTO sessions (actor_id, notes_ciphertext, notes_nonce, started_at)
-             VALUES (?, ?, ?, ?)"
+            "INSERT INTO sessions (actor_id, notes_ciphertext, notes_nonce)
+             VALUES (?, ?, ?)"
         );
-        $stmt->execute([$my_actor_id, $enc_notes_ct, $enc_notes_nonce, $started_at]);
+        $stmt->execute([$my_actor_id, $notes_ct, $notes_nonce]);
         $session_id = (int)$pdo->lastInsertId();
 
         http_response_code(201);
         echo json_encode([
             "session_id" => $session_id,
             "status"     => "active",
-            "started_at" => $started_at,
+            "notes"      => $notes,
+            "started_at" => gmdate("Y-m-d H:i:s"),
         ]);
         break;
 
@@ -144,10 +147,13 @@ switch ($method) {
         }
 
         // Verify ownership
-        $stmt = $pdo->prepare("SELECT session_id, status FROM sessions WHERE session_id = ? AND actor_id = ?");
+        $stmt = $pdo->prepare(
+            "SELECT session_id, status FROM sessions WHERE session_id = ? AND actor_id = ?"
+        );
         $stmt->execute([$id_param, $my_actor_id]);
-        $existing = $stmt->fetch();
-        if (!$existing) {
+        $session = $stmt->fetch();
+
+        if (!$session) {
             http_response_code(404);
             echo json_encode(["error" => "Session not found"]);
             break;
@@ -157,15 +163,14 @@ switch ($method) {
         $updates = [];
         $params = [];
 
-        if (isset($input["action"]) && $input["action"] === "end") {
-            if ($existing["status"] === "ended") {
-                http_response_code(409);
+        if (isset($input["status"]) && $input["status"] === "ended") {
+            if ($session["status"] === "ended") {
+                http_response_code(400);
                 echo json_encode(["error" => "Session already ended"]);
                 break;
             }
             $updates[] = "status = 'ended'";
-            $updates[] = "ended_at = ?";
-            $params[] = $input["ended_at"] ?? gmdate("Y-m-d H:i:s");
+            $updates[] = "ended_at = NOW()";
         }
 
         if (array_key_exists("notes", $input)) {
@@ -181,7 +186,7 @@ switch ($method) {
 
         if (empty($updates)) {
             http_response_code(400);
-            echo json_encode(["error" => "No fields to update. Use {\"action\": \"end\"} or {\"notes\": \"...\"}"]);
+            echo json_encode(["error" => "No fields to update"]);
             break;
         }
 
@@ -203,16 +208,37 @@ switch ($method) {
             break;
         }
 
-        $stmt = $pdo->prepare("DELETE FROM sessions WHERE session_id = ? AND actor_id = ?");
+        // Verify ownership first
+        $stmt = $pdo->prepare(
+            "SELECT session_id FROM sessions WHERE session_id = ? AND actor_id = ?"
+        );
         $stmt->execute([$id_param, $my_actor_id]);
-
-        if ($stmt->rowCount() === 0) {
+        if (!$stmt->fetch()) {
             http_response_code(404);
             echo json_encode(["error" => "Session not found"]);
             break;
         }
 
-        echo json_encode(["status" => "deleted", "session_id" => $id_param]);
+        $pdo->beginTransaction();
+        try {
+            // Unlink activities and todos from this session (don't delete them)
+            $stmt = $pdo->prepare("UPDATE activities SET session_id = NULL WHERE session_id = ? AND actor_id = ?");
+            $stmt->execute([$id_param, $my_actor_id]);
+            $stmt = $pdo->prepare("UPDATE todos SET session_id = NULL WHERE session_id = ? AND actor_id = ?");
+            $stmt->execute([$id_param, $my_actor_id]);
+
+            $stmt = $pdo->prepare(
+                "DELETE FROM sessions WHERE session_id = ? AND actor_id = ?"
+            );
+            $stmt->execute([$id_param, $my_actor_id]);
+
+            $pdo->commit();
+            echo json_encode(["status" => "deleted", "session_id" => $id_param]);
+        } catch (\Exception $e) {
+            $pdo->rollBack();
+            http_response_code(500);
+            echo json_encode(["error" => "Failed to delete session: " . $e->getMessage()]);
+        }
         break;
 
     default:
