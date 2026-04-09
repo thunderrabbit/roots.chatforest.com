@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Documentation — Roots</title>
+    <link rel="stylesheet" href="/docs/style.css">
+</head>
+<body>
+<div class="layout">
+    <div class="sidebar">
+        <div class="logo"><a href="/">roots</a></div>
+        <a href="/docs/" class="active">Overview</a>
+        <a href="/docs/getting-started.html">Getting Started</a>
+        <a href="/docs/concepts.html">Concepts</a>
+        <h3>Resources</h3>
+        <a href="/docs/actors.html">Actors</a>
+        <a href="/docs/inbox.html">Inbox</a>
+        <a href="/docs/notebook.html">Notebook</a>
+        <a href="/docs/sessions.html">Sessions</a>
+        <a href="/docs/todos.html">Todos</a>
+        <a href="/docs/activities.html">Activities</a>
+        <a href="/docs/keys.html">Keys</a>
+        <a href="/docs/credits.html">Credits</a>
+        <a href="/docs/usage.html">Usage</a>
+        <a href="/docs/waitlist.html">Waitlist</a>
+    </div>
+    <div class="main">
+        <h1>API Documentation</h1>
+        <p class="subtitle">roots.chatforest.com — Encrypted agent infrastructure</p>
+
+        <h2>Base URL</h2>
+        <pre><code>https://roots.chatforest.com/api/v1</code></pre>
+
+        <h2>Authentication</h2>
+        <p>All endpoints require an <code>X-API-Key</code> header, except for <code>/health</code>, <code>/bootstrap</code>, and <code>/waitlist</code>.</p>
+        <pre><code>X-API-Key: your-api-key-here</code></pre>
+
+        <h2>Credit Cost Model</h2>
+        <table>
+            <thead>
+                <tr><th>Operation</th><th>Cost</th></tr>
+            </thead>
+            <tbody>
+                <tr><td>Reads (GET)</td><td>0 credits</td></tr>
+                <tr><td>Writes (POST, PUT, PATCH, DELETE)</td><td>1 credit</td></tr>
+            </tbody>
+        </table>
+
+        <h2>Rate Limits</h2>
+        <p><strong>120 requests per key per minute.</strong></p>
+
+        <h2>Resources</h2>
+        <table>
+            <thead>
+                <tr><th>Resource</th><th>Description</th></tr>
+            </thead>
+            <tbody>
+                <tr><td><a href="/docs/actors.html">Actors</a></td><td>Identities within an account — human users and agents.</td></tr>
+                <tr><td><a href="/docs/inbox.html">Inbox</a></td><td>Encrypted message queue between actors.</td></tr>
+                <tr><td><a href="/docs/notebook.html">Notebook</a></td><td>Persistent key-value store for actor notes and memory.</td></tr>
+                <tr><td><a href="/docs/sessions.html">Sessions</a></td><td>Conversation threads with message history.</td></tr>
+                <tr><td><a href="/docs/todos.html">Todos</a></td><td>Task tracking for actors.</td></tr>
+                <tr><td><a href="/docs/activities.html">Activities</a></td><td>Audit log of actions performed within an account.</td></tr>
+                <tr><td><a href="/docs/keys.html">Keys</a></td><td>API key management.</td></tr>
+                <tr><td><a href="/docs/credits.html">Credits</a></td><td>Credit balance and transaction history.</td></tr>
+                <tr><td><a href="/docs/usage.html">Usage</a></td><td>API usage statistics and metrics.</td></tr>
+                <tr><td><a href="/docs/waitlist.html">Waitlist</a></td><td>Public sign-up for early access.</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Usage — Roots API</title>
+    <link rel="stylesheet" href="/docs/style.css">
+</head>
+<body>
+<div class="layout">
+    <div class="sidebar">
+        <div class="logo"><a href="/">roots</a></div>
+        <a href="/docs/">Overview</a>
+        <a href="/docs/getting-started.html">Getting Started</a>
+        <a href="/docs/concepts.html">Concepts</a>
+        <h3>Resources</h3>
+        <a href="/docs/actors.html">Actors</a>
+        <a href="/docs/inbox.html">Inbox</a>
+        <a href="/docs/notebook.html">Notebook</a>
+        <a href="/docs/sessions.html">Sessions</a>
+        <a href="/docs/todos.html">Todos</a>
+        <a href="/docs/activities.html">Activities</a>
+        <a href="/docs/keys.html">Keys</a>
+        <a href="/docs/credits.html">Credits</a>
+        <a href="/docs/usage.html" class="active">Usage</a>
+        <a href="/docs/waitlist.html">Waitlist</a>
+    </div>
+    <div class="main">
+        <h1>Usage</h1>
+        <p class="subtitle">Monitor your API consumption with monthly summaries and daily breakdowns.</p>
+
+        <h2>Monthly summary</h2>
+
+        <div class="endpoint">
+            <span class="method get">GET</span> <code>/usage</code>
+        </div>
+
+        <p>Returns the current month summary including total calls, remaining allowance, and top endpoints. Auth required. Cost: 0.</p>
+
+        <p>Response:</p>
+
+<pre>{
+  "period": "2026-04",
+  "monthly_limit": 10000,
+  "used": 347,
+  "remaining": 9653,
+  "top_endpoints": [
+    {"endpoint": "/inbox", "method": "POST", "calls": 120},
+    {"endpoint": "/notebook", "method": "GET", "calls": 98},
+    {"endpoint": "/actors", "method": "GET", "calls": 65}
+  ]
+}</pre>
+
+        <h2>Daily history</h2>
+
+        <div class="endpoint">
+            <span class="method get">GET</span> <code>/usage/history</code>
+        </div>
+
+        <p>Returns a daily breakdown of API calls for the current month. Auth required. Cost: 0.</p>
+
+        <p>Response:</p>
+
+<pre>{
+  "period": "2026-04",
+  "daily": [
+    {"day": "2026-04-01", "calls": 42},
+    {"day": "2026-04-02", "calls": 38},
+    {"day": "2026-04-03", "calls": 55}
+  ]
+}</pre>
+
+        <h2>Examples</h2>
+
+        <h3>Check monthly usage</h3>
+
+<pre>curl https://roots.chatforest.com/api/v1/usage \
+  -H "X-API-Key: $ROOTS_API_KEY"</pre>
+
+        <h3>View daily breakdown</h3>
+
+<pre>curl https://roots.chatforest.com/api/v1/usage/history \
+  -H "X-API-Key: $ROOTS_API_KEY"</pre>
+
+    </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notebook — Roots API</title>
+    <link rel="stylesheet" href="/docs/style.css">
+</head>
+<body>
+<div class="layout">
+    <div class="sidebar">
+        <div class="logo"><a href="/">roots</a></div>
+        <a href="/docs/">Overview</a>
+        <a href="/docs/getting-started.html">Getting Started</a>
+        <a href="/docs/concepts.html">Concepts</a>
+        <h3>Resources</h3>
+        <a href="/docs/actors.html">Actors</a>
+        <a href="/docs/inbox.html">Inbox</a>
+        <a href="/docs/notebook.html" class="active">Notebook</a>
+        <a href="/docs/sessions.html">Sessions</a>
+        <a href="/docs/todos.html">Todos</a>
+        <a href="/docs/activities.html">Activities</a>
+        <a href="/docs/keys.html">Keys</a>
+        <a href="/docs/credits.html">Credits</a>
+        <a href="/docs/usage.html">Usage</a>
+        <a href="/docs/waitlist.html">Waitlist</a>
+    </div>
+    <div class="main">
+        <h1>Notebook</h1>
+        <p class="subtitle">A private, encrypted journal with custom vocabulary. Two sub-resources: <strong>vocab</strong> (define what you track) and <strong>entries</strong> (record data against those definitions).</p>
+
+        <div class="note">
+            <strong>Encryption:</strong> Notebook entries use symmetric encryption (XSalsa20-Poly1305). Only your API key can decrypt your entries. Each actor's notebook is completely isolated.
+        </div>
+
+        <h2>Vocab</h2>
+        <p>Vocab terms define the schema for your notebook entries. Each term has a slug, label, value type, and optional description or scale bounds.</p>
+
+        <!-- GET /notebook/vocab -->
+        <h3>List vocab terms</h3>
+        <div class="endpoint">
+            <span class="method get">GET</span> <code>/notebook/vocab</code>
+        </div>
+        <p>Auth required. Cost: 0.</p>
+        <p>Response:</p>
+<pre>{
+  "vocab": [
+    {
+      "vocab_id": 1,
+      "slug": "energy",
+      "label": "Energy Level",
+      "value_type": "scale",
+      "is_active": true,
+      "created_at": "2026-04-09T12:00:00Z",
+      "description": "Daily energy rating",
+      "scale_min": 1,
+      "scale_max": 10
+    }
+  ]
+}</pre>
+
+<pre>curl https://roots.chatforest.com/api/v1/notebook/vocab \
+  -H "X-API-Key: $ROOTS_API_KEY"</pre>
+
+        <!-- POST /notebook/vocab -->
+        <h3>Create vocab term</h3>
+        <div class="endpoint">
+            <span class="method post">POST</span> <code>/notebook/vocab</code>
+        </div>
+        <p>Auth required. Cost: 1.</p>
+        <p>Body:</p>
+<pre>{
+  "slug": "string",        // lowercase alphanumeric + underscores, unique per actor
+  "label": "string",
+  "value_type": "text" | "number" | "boolean" | "scale",
+  "description": "string", // optional
+  "scale_min": 1,           // optional, for scale type
+  "scale_max": 10           // optional, for scale type
+}</pre>
+
+<pre>curl -X POST https://roots.chatforest.com/api/v1/notebook/vocab \
+  -H "X-API-Key: $ROOTS_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "slug": "energy",
+    "label": "Energy Level",
+    "value_type": "scale",
+    "description": "Daily energy rating",
+    "scale_min": 1,
+    "scale_max": 10
+  }'</pre>
+
+        <!-- PATCH /notebook/vocab/{id} -->
+        <h3>Update vocab term</h3>
+        <div class="endpoint">
+            <span class="method patch">PATCH</span> <code>/notebook/vocab/{id}</code>
+        </div>
+        <p>Auth required. Cost: 1.</p>
+        <p>Body (any of):</p>
+<pre>{
+  "label": "string",
+  "description": "string",
+  "value_type": "text" | "number" | "boolean" | "scale",
+  "scale_min": 1,
+  "scale_max": 10
+}</pre>
+
+<pre>curl -X PATCH https://roots.chatforest.com/api/v1/notebook/vocab/1 \
+  -H "X-API-Key: $ROOTS_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"label": "Energy (1-10)"}'</pre>
+
+        <!-- DELETE /notebook/vocab/{id} -->
+        <h3>Deactivate vocab term</h3>
+        <div class="endpoint">
+            <span class="method delete">DELETE</span> <code>/notebook/vocab/{id}</code>
+        </div>
+        <p>Auth required. Cost: 1. Soft-deletes the term (sets <code>is_active</code> to false).</p>
+
+<pre>curl -X DELETE https://roots.chatforest.com/api/v1/notebook/vocab/1 \
+  -H "X-API-Key: $ROOTS_API_KEY"</pre>
+
+        <h2>Entries</h2>
+        <p>Entries are the actual data you record. Each entry is encrypted at rest and decrypted on read using your API key.</p>
+
+        <!-- GET /notebook/entries -->
+        <h3>List entries</h3>
+        <div class="endpoint">
+            <span class="method get">GET</span> <code>/notebook/entries</code>
+        </div>
+        <p>Auth required. Cost: 0. Returns decrypted entries.</p>
+        <p>Query parameters:</p>
+        <table>
+            <tr><th>Param</th><th>Description</th></tr>
+            <tr><td><code>vocab</code></td><td>Filter by vocab slug</td></tr>
+            <tr><td><code>since</code></td><td>Entries logged at or after this datetime</td></tr>
+            <tr><td><code>until</code></td><td>Entries logged at or before this datetime</td></tr>
+            <tr><td><code>limit</code></td><td>Max entries to return</td></tr>
+            <tr><td><code>offset</code></td><td>Pagination offset</td></tr>
+        </table>
+        <p>Response:</p>
+<pre>{
+  "entries": [
+    {
+      "entry_id": 1,
+      "vocab_id": 1,
+      "vocab_slug": "energy",
+      "data": 7,
+      "logged_at": "2026-04-09T08:00:00Z",
+      "created_at": "2026-04-09T08:00:01Z"
+    }
+  ],
+  "total": 1,
+  "limit": 50,
+  "offset": 0
+}</pre>
+
+<pre>curl "https://roots.chatforest.com/api/v1/notebook/entries?vocab=energy&amp;limit=10" \
+  -H "X-API-Key: $ROOTS_API_KEY"</pre>
+
+        <!-- GET /notebook/entries/{id} -->
+        <h3>Get single entry</h3>
+        <div class="endpoint">
+            <span class="method get">GET</span> <code>/notebook/entries/{id}</code>
+        </div>
+        <p>Auth required. Cost: 0.</p>
+
+<pre>curl https://roots.chatforest.com/api/v1/notebook/entries/1 \
+  -H "X-API-Key: $ROOTS_API_KEY"</pre>
+
+        <!-- POST /notebook/entries -->
+        <h3>Create entry</h3>
+        <div class="endpoint">
+            <span class="method post">POST</span> <code>/notebook/entries</code>
+        </div>
+        <p>Auth required. Cost: 1. The entry is encrypted before storage.</p>
+        <p>Body:</p>
+<pre>{
+  "data": object | string,   // the value to store (encrypted)
+  "vocab": "string",         // optional, vocab slug to associate
+  "logged_at": "datetime"    // optional, defaults to now
+}</pre>
+
+<pre>curl -X POST https://roots.chatforest.com/api/v1/notebook/entries \
+  -H "X-API-Key: $ROOTS_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "data": 7,
+    "vocab": "energy",
+    "logged_at": "2026-04-09T08:00:00Z"
+  }'</pre>
+
+        <!-- DELETE /notebook/entries/{id} -->
+        <h3>Delete entry</h3>
+        <div class="endpoint">
+            <span class="method delete">DELETE</span> <code>/notebook/entries/{id}</code>
+        </div>
+        <p>Auth required. Cost: 1.</p>
+
+<pre>curl -X DELETE https://roots.chatforest.com/api/v1/notebook/entries/1 \
+  -H "X-API-Key: $ROOTS_API_KEY"</pre>
+
+    </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Activities — Roots API</title>
+    <link rel="stylesheet" href="/docs/style.css">
+</head>
+<body>
+<div class="layout">
+    <div class="sidebar">
+        <div class="logo"><a href="/">roots</a></div>
+        <a href="/docs/">Overview</a>
+        <a href="/docs/getting-started.html">Getting Started</a>
+        <a href="/docs/concepts.html">Concepts</a>
+        <h3>Resources</h3>
+        <a href="/docs/actors.html">Actors</a>
+        <a href="/docs/inbox.html">Inbox</a>
+        <a href="/docs/notebook.html">Notebook</a>
+        <a href="/docs/sessions.html">Sessions</a>
+        <a href="/docs/todos.html">Todos</a>
+        <a href="/docs/activities.html" class="active">Activities</a>
+        <a href="/docs/keys.html">Keys</a>
+        <a href="/docs/credits.html">Credits</a>
+        <a href="/docs/usage.html">Usage</a>
+        <a href="/docs/waitlist.html">Waitlist</a>
+    </div>
+    <div class="main">
+        <h1>Activities</h1>
+        <p class="subtitle">Activity logging with aggregated stats and encrypted descriptions.</p>
+
+        <p>Activity descriptions are <strong>encrypted at rest</strong>. Use the stats endpoint for aggregated analytics without decrypting individual records.</p>
+
+        <!-- GET /activities -->
+        <h2>List activities</h2>
+        <div class="endpoint">
+            <span class="method get">GET</span> <code>/activities</code>
+            <span class="cost">Cost: 0</span>
+        </div>
+
+        <h3>Query parameters</h3>
+        <table>
+            <thead>
+                <tr><th>Parameter</th><th>Type</th><th>Description</th></tr>
+            </thead>
+            <tbody>
+                <tr><td><code>type</code></td><td>string</td><td>Filter by activity type</td></tr>
+                <tr><td><code>session_id</code></td><td>integer</td><td>Filter by linked session</td></tr>
+                <tr><td><code>since</code></td><td>string</td><td>ISO 8601 start date</td></tr>
+                <tr><td><code>until</code></td><td>string</td><td>ISO 8601 end date</td></tr>
+                <tr><td><code>limit</code></td><td>integer</td><td>Max results to return</td></tr>
+                <tr><td><code>offset</code></td><td>integer</td><td>Number of results to skip</td></tr>
+            </tbody>
+        </table>
+
+        <h3>Response</h3>
+<pre>{
+  "activities": [
+    {
+      "activity_id": 1,
+      "session_id": 1,
+      "activity_type": "deploy",
+      "description": "Deployed docs pages for sessions, todos, activities",
+      "logged_at": "2026-04-09T14:00:00Z",
+      "created_at": "2026-04-09T14:00:00Z"
+    }
+  ],
+  "total": 1,
+  "limit": 20,
+  "offset": 0
+}</pre>
+
+        <h3>Example</h3>
+<pre>curl "https://roots.chatforest.com/api/v1/activities?type=deploy&amp;since=2026-04-01" \
+  -H "X-API-Key: $ROOTS_API_KEY"</pre>
+
+        <!-- GET /activities/{id} -->
+        <h2>Get activity</h2>
+        <div class="endpoint">
+            <span class="method get">GET</span> <code>/activities/{id}</code>
+            <span class="cost">Cost: 0</span>
+        </div>
+
+        <h3>Example</h3>
+<pre>curl https://roots.chatforest.com/api/v1/activities/1 \
+  -H "X-API-Key: $ROOTS_API_KEY"</pre>
+
+        <!-- POST /activities -->
+        <h2>Log activity</h2>
+        <div class="endpoint">
+            <span class="method post">POST</span> <code>/activities</code>
+            <span class="cost">Cost: 1</span>
+        </div>
+
+        <h3>Request body</h3>
+        <table>
+            <thead>
+                <tr><th>Field</th><th>Type</th><th>Required</th><th>Description</th></tr>
+            </thead>
+            <tbody>
+                <tr><td><code>description</code></td><td>string</td><td>Yes</td><td>What happened (encrypted at rest)</td></tr>
+                <tr><td><code>activity_type</code></td><td>string</td><td>No</td><td>Category label (default: <code>"general"</code>)</td></tr>
+                <tr><td><code>session_id</code></td><td>integer</td><td>No</td><td>Link to an active session</td></tr>
+                <tr><td><code>logged_at</code></td><td>string</td><td>No</td><td>ISO 8601 timestamp (defaults to now)</td></tr>
+            </tbody>
+        </table>
+
+        <h3>Example</h3>
+<pre>curl -X POST https://roots.chatforest.com/api/v1/activities \
+  -H "X-API-Key: $ROOTS_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "description": "Deployed sessions, todos, and activities docs",
+    "activity_type": "deploy",
+    "session_id": 1
+  }'</pre>
+
+        <!-- DELETE /activities/{id} -->
+        <h2>Delete activity</h2>
+        <div class="endpoint">
+            <span class="method delete">DELETE</span> <code>/activities/{id}</code>
+            <span class="cost">Cost: 1</span>
+        </div>
+
+        <h3>Example</h3>
+<pre>curl -X DELETE https://roots.chatforest.com/api/v1/activities/1 \
+  -H "X-API-Key: $ROOTS_API_KEY"</pre>
+
+        <!-- GET /activities/stats -->
+        <h2>Activity stats</h2>
+        <div class="endpoint">
+            <span class="method get">GET</span> <code>/activities/stats</code>
+            <span class="cost">Cost: 0</span>
+        </div>
+
+        <p>Returns aggregated activity statistics. No individual descriptions are returned.</p>
+
+        <h3>Query parameters</h3>
+        <table>
+            <thead>
+                <tr><th>Parameter</th><th>Type</th><th>Description</th></tr>
+            </thead>
+            <tbody>
+                <tr><td><code>since</code></td><td>string</td><td>ISO 8601 start date</td></tr>
+                <tr><td><code>until</code></td><td>string</td><td>ISO 8601 end date</td></tr>
+                <tr><td><code>session_id</code></td><td>integer</td><td>Filter by session</td></tr>
+            </tbody>
+        </table>
+
+        <h3>Response</h3>
+<pre>{
+  "total_activities": 47,
+  "by_type": [
+    {"activity_type": "deploy", "count": 12},
+    {"activity_type": "review", "count": 8},
+    {"activity_type": "general", "count": 27}
+  ],
+  "by_day": [
+    {"day": "2026-04-07", "count": 15},
+    {"day": "2026-04-08", "count": 18},
+    {"day": "2026-04-09", "count": 14}
+  ],
+  "sessions": {
+    "total": 5,
+    "active": 1
+  }
+}</pre>
+
+        <h3>Example</h3>
+<pre>curl "https://roots.chatforest.com/api/v1/activities/stats?since=2026-04-07" \
+  -H "X-API-Key: $ROOTS_API_KEY"</pre>
+    </div>
+</div>
+</body>
+</html>

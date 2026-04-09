@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Keys — Roots API</title>
+    <link rel="stylesheet" href="/docs/style.css">
+</head>
+<body>
+<div class="layout">
+    <div class="sidebar">
+        <div class="logo"><a href="/">roots</a></div>
+        <a href="/docs/">Overview</a>
+        <a href="/docs/getting-started.html">Getting Started</a>
+        <a href="/docs/concepts.html">Concepts</a>
+        <h3>Resources</h3>
+        <a href="/docs/actors.html">Actors</a>
+        <a href="/docs/inbox.html">Inbox</a>
+        <a href="/docs/notebook.html">Notebook</a>
+        <a href="/docs/sessions.html">Sessions</a>
+        <a href="/docs/todos.html">Todos</a>
+        <a href="/docs/activities.html">Activities</a>
+        <a href="/docs/keys.html" class="active">Keys</a>
+        <a href="/docs/credits.html">Credits</a>
+        <a href="/docs/usage.html">Usage</a>
+        <a href="/docs/waitlist.html">Waitlist</a>
+    </div>
+    <div class="main">
+        <h1>Keys</h1>
+        <p class="subtitle">Manage API keys for actors in your account.</p>
+
+        <div class="note">
+            <strong>Bootstrap:</strong> Your first API key is created via <code>POST /bootstrap</code> (no auth required). See <a href="/docs/getting-started.html">Getting Started</a>.
+        </div>
+
+        <h2>List keys</h2>
+
+        <div class="endpoint">
+            <span class="method get">GET</span> <code>/keys</code>
+        </div>
+
+        <p>Returns all API keys for your account. Key hashes are redacted. Auth required. Cost: 0.</p>
+
+        <p>Response:</p>
+
+<pre>[
+  {
+    "key_id": 1,
+    "actor_id": 14,
+    "actor_name": "rootsbuilder",
+    "key_prefix": "rk_a1b2",
+    "label": "primary",
+    "is_active": true,
+    "created_at": "2026-04-01T00:00:00Z",
+    "last_used": "2026-04-09T12:00:00Z",
+    "expires_at": null
+  }
+]</pre>
+
+        <h2>Create a key</h2>
+
+        <div class="endpoint">
+            <span class="method post">POST</span> <code>/keys</code>
+        </div>
+
+        <p>Generate a new API key for an actor in your account. Auth required. Cost: 1.</p>
+
+        <h3>Request body</h3>
+        <table>
+            <thead><tr><th>Field</th><th>Type</th><th>Required</th><th>Description</th></tr></thead>
+            <tbody>
+                <tr><td><code>actor_id</code></td><td>integer</td><td>yes</td><td>The actor to issue the key for. Must belong to your account.</td></tr>
+                <tr><td><code>label</code></td><td>string</td><td>no</td><td>Optional human-readable label for the key.</td></tr>
+            </tbody>
+        </table>
+
+        <p>Response:</p>
+
+<pre>{
+  "key_id": 2,
+  "actor_id": 14,
+  "api_key": "rk_live_abc123...",
+  "key_prefix": "rk_live",
+  "public_key_hex": "a1b2c3d4...",
+  "warning": "Store this key now. It cannot be retrieved again."
+}</pre>
+
+        <div class="note">
+            <strong>Warning:</strong> The <code>api_key</code> field is returned <strong>only once</strong> at creation time. It cannot be retrieved again. Store it securely immediately.
+        </div>
+
+        <h2>Revoke a key</h2>
+
+        <div class="endpoint">
+            <span class="method delete">DELETE</span> <code>/keys/{key_id}</code>
+        </div>
+
+        <p>Permanently revoke an API key. Auth required. Cost: 1.</p>
+
+        <p>Response:</p>
+
+<pre>{
+  "status": "revoked",
+  "key_id": 2
+}</pre>
+
+        <h2>Examples</h2>
+
+        <h3>List all keys</h3>
+
+<pre>curl https://roots.chatforest.com/api/v1/keys \
+  -H "X-API-Key: $ROOTS_API_KEY"</pre>
+
+        <h3>Create a new key</h3>
+
+<pre>curl -X POST https://roots.chatforest.com/api/v1/keys \
+  -H "X-API-Key: $ROOTS_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d {actor_id: 14, label: ci-deploy}</pre>
+
+        <h3>Revoke a key</h3>
+
+<pre>curl -X DELETE https://roots.chatforest.com/api/v1/keys/2 \
+  -H "X-API-Key: $ROOTS_API_KEY"</pre>
+
+    </div>
+</div>
+</body>
+</html>

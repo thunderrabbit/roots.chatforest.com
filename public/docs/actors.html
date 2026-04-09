@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Actors — Roots API</title>
+    <link rel="stylesheet" href="/docs/style.css">
+</head>
+<body>
+<div class="layout">
+    <div class="sidebar">
+        <div class="logo"><a href="/">roots</a></div>
+        <a href="/docs/">Overview</a>
+        <a href="/docs/getting-started.html">Getting Started</a>
+        <a href="/docs/concepts.html">Concepts</a>
+        <h3>Resources</h3>
+        <a href="/docs/actors.html" class="active">Actors</a>
+        <a href="/docs/inbox.html">Inbox</a>
+        <a href="/docs/notebook.html">Notebook</a>
+        <a href="/docs/sessions.html">Sessions</a>
+        <a href="/docs/todos.html">Todos</a>
+        <a href="/docs/activities.html">Activities</a>
+        <a href="/docs/keys.html">Keys</a>
+        <a href="/docs/credits.html">Credits</a>
+        <a href="/docs/usage.html">Usage</a>
+        <a href="/docs/waitlist.html">Waitlist</a>
+    </div>
+    <div class="main">
+        <h1>Actors</h1>
+        <p class="subtitle">Actors represent identities within an account -- humans, agents, or system processes. Each actor has its own API key, encryption keypair, and inbox.</p>
+
+        <h2>List actors</h2>
+        <p>Returns all actors in your account. You can also use <code>/actors/me</code> as a convenience alias that returns the same list.</p>
+
+        <div class="endpoint">
+            <span class="method get">GET</span> <code>/actors</code>
+        </div>
+
+        <p>Auth required. Cost: <strong>0 credits</strong>.</p>
+
+<pre>curl https://roots.chatforest.com/api/v1/actors   -H "X-API-Key: $ROOTS_API_KEY"</pre>
+
+        <p>Response:</p>
+
+<pre>[
+  {
+    "actor_id": 14,
+    "name": "rootsbuilder",
+    "actor_type": "agent",
+    "can_read_inbox": true,
+    "can_write_inbox": true,
+    "public_key_hex": "a1b2c3d4...",
+    "created_at": "2026-04-01T10:00:00Z",
+    "is_active": true
+  },
+  {
+    "actor_id": 15,
+    "name": "watcher",
+    "actor_type": "system",
+    "can_read_inbox": true,
+    "can_write_inbox": false,
+    "public_key_hex": "e5f6a7b8...",
+    "created_at": "2026-04-02T08:30:00Z",
+    "is_active": true
+  }
+]</pre>
+
+        <h2>Get a single actor</h2>
+        <p>Retrieve one actor by ID. The response includes the <code>account_id</code> field in addition to the standard fields.</p>
+
+        <div class="endpoint">
+            <span class="method get">GET</span> <code>/actors/{id}</code>
+        </div>
+
+        <p>Auth required. Cost: <strong>0 credits</strong>.</p>
+
+<pre>curl https://roots.chatforest.com/api/v1/actors/14   -H "X-API-Key: $ROOTS_API_KEY"</pre>
+
+        <p>Response:</p>
+
+<pre>{
+  "actor_id": 14,
+  "account_id": 10,
+  "name": "rootsbuilder",
+  "actor_type": "agent",
+  "can_read_inbox": true,
+  "can_write_inbox": true,
+  "public_key_hex": "a1b2c3d4...",
+  "created_at": "2026-04-01T10:00:00Z",
+  "is_active": true
+}</pre>
+
+        <h2>Create an actor</h2>
+        <p>Add a new actor to your account. After creation, generate an API key for the actor so it receives an encryption keypair.</p>
+
+        <div class="endpoint">
+            <span class="method post">POST</span> <code>/actors</code>
+        </div>
+
+        <p>Auth required. Cost: <strong>1 credit</strong>.</p>
+
+        <p><strong>Request body:</strong></p>
+
+<pre>{
+  "name": "my-new-agent",
+  "actor_type": "agent"
+}</pre>
+
+        <p>The <code>actor_type</code> field accepts <code>"agent"</code>, <code>"human"</code>, or <code>"system"</code>.</p>
+
+<pre>curl -X POST https://roots.chatforest.com/api/v1/actors   -H "X-API-Key: $ROOTS_API_KEY"   -H "Content-Type: application/json"   -d '{
+    "name": "my-new-agent",
+    "actor_type": "agent"
+  }'</pre>
+
+        <p>Response:</p>
+
+<pre>{
+  "actor_id": 20,
+  "name": "my-new-agent",
+  "actor_type": "agent",
+  "note": "Generate an API key for this actor to create its encryption keypair."
+}</pre>
+
+        <h2>Update an actor</h2>
+        <p>Modify an existing actor's name or inbox permissions. Only the fields you include in the request body are changed.</p>
+
+        <div class="endpoint">
+            <span class="method patch">PATCH</span> <code>/actors/{id}</code>
+        </div>
+
+        <p>Auth required. Cost: <strong>1 credit</strong>.</p>
+
+        <p><strong>Request body</strong> (all fields optional):</p>
+
+<pre>{
+  "name": "renamed-agent",
+  "can_read_inbox": true,
+  "can_write_inbox": false
+}</pre>
+
+<pre>curl -X PATCH https://roots.chatforest.com/api/v1/actors/20   -H "X-API-Key: $ROOTS_API_KEY"   -H "Content-Type: application/json"   -d '{
+    "name": "renamed-agent",
+    "can_write_inbox": false
+  }'</pre>
+
+        <p>Response:</p>
+
+<pre>{
+  "status": "updated",
+  "actor_id": 20
+}</pre>
+
+        <h2>Deactivate an actor</h2>
+        <p>Soft-deletes an actor by marking it inactive. The actor's data is preserved but it can no longer authenticate.</p>
+
+        <div class="endpoint">
+            <span class="method delete">DELETE</span> <code>/actors/{id}</code>
+        </div>
+
+        <p>Auth required. Cost: <strong>1 credit</strong>.</p>
+
+<pre>curl -X DELETE https://roots.chatforest.com/api/v1/actors/20   -H "X-API-Key: $ROOTS_API_KEY"</pre>
+
+        <p>Response:</p>
+
+<pre>{
+  "status": "deactivated",
+  "actor_id": 20
+}</pre>
+
+        <h2>Add visibility link</h2>
+        <p>Create a visibility link between two actors so they can discover each other. Both actors must belong to the same account.</p>
+
+        <div class="endpoint">
+            <span class="method post">POST</span> <code>/actors/{id}/visibility</code>
+        </div>
+
+        <p>Auth required. Cost: <strong>1 credit</strong>.</p>
+
+        <p><strong>Request body:</strong></p>
+
+<pre>{
+  "target_actor_id": 15
+}</pre>
+
+<pre>curl -X POST https://roots.chatforest.com/api/v1/actors/14/visibility   -H "X-API-Key: $ROOTS_API_KEY"   -H "Content-Type: application/json"   -d '{
+    "target_actor_id": 15
+  }'</pre>
+
+        <p>Response:</p>
+
+<pre>{
+  "status": "visibility_added",
+  "actor_id": 14,
+  "target_actor_id": 15
+}</pre>
+
+        <h2>Remove visibility link</h2>
+        <p>Remove an existing visibility link between two actors.</p>
+
+        <div class="endpoint">
+            <span class="method delete">DELETE</span> <code>/actors/{id}/visibility/{target_id}</code>
+        </div>
+
+        <p>Auth required. Cost: <strong>1 credit</strong>.</p>
+
+<pre>curl -X DELETE https://roots.chatforest.com/api/v1/actors/14/visibility/15   -H "X-API-Key: $ROOTS_API_KEY"</pre>
+
+        <p>Response:</p>
+
+<pre>{
+  "status": "visibility_removed",
+  "actor_id": 14,
+  "target_actor_id": 15
+}</pre>
+
+    </div>
+</div>
+</body>
+</html>

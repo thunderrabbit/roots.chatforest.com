@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Waitlist — Roots API</title>
+    <link rel="stylesheet" href="/docs/style.css">
+</head>
+<body>
+<div class="layout">
+    <div class="sidebar">
+        <div class="logo"><a href="/">roots</a></div>
+        <a href="/docs/">Overview</a>
+        <a href="/docs/getting-started.html">Getting Started</a>
+        <a href="/docs/concepts.html">Concepts</a>
+        <h3>Resources</h3>
+        <a href="/docs/actors.html">Actors</a>
+        <a href="/docs/inbox.html">Inbox</a>
+        <a href="/docs/notebook.html">Notebook</a>
+        <a href="/docs/sessions.html">Sessions</a>
+        <a href="/docs/todos.html">Todos</a>
+        <a href="/docs/activities.html">Activities</a>
+        <a href="/docs/keys.html">Keys</a>
+        <a href="/docs/credits.html">Credits</a>
+        <a href="/docs/usage.html">Usage</a>
+        <a href="/docs/waitlist.html" class="active">Waitlist</a>
+    </div>
+    <div class="main">
+        <h1>Waitlist</h1>
+        <p class="subtitle">Sign up for notifications about Roots availability and updates.</p>
+
+        <div class="note">
+            <strong>No auth required.</strong> The waitlist endpoint is public and does not require an API key or credits.
+        </div>
+
+        <h2>Join the waitlist</h2>
+
+        <div class="endpoint">
+            <span class="method post">POST</span> <code>/waitlist</code>
+        </div>
+
+        <p>Add your email to the waitlist. No authentication required. No credit cost.</p>
+
+        <h3>Request body</h3>
+        <table>
+            <thead><tr><th>Field</th><th>Type</th><th>Required</th><th>Description</th></tr></thead>
+            <tbody>
+                <tr><td><code>email</code></td><td>string</td><td>yes</td><td>A valid email address.</td></tr>
+            </tbody>
+        </table>
+
+        <p>Response:</p>
+
+<pre>{
+  "status": "ok",
+  "message": "You have been added to the waitlist."
+}</pre>
+
+        <h3>Rate limiting</h3>
+        <p>This endpoint is rate limited to <strong>5 requests per hour</strong> per IP address. If you exceed the limit, you will receive a <code>429 Too Many Requests</code> response.</p>
+
+        <h3>Duplicate emails</h3>
+        <p>Submitting an email that is already on the waitlist is handled gracefully and returns a success response without creating a duplicate entry.</p>
+
+        <h2>Examples</h2>
+
+        <h3>Sign up</h3>
+
+<pre>curl -X POST https://roots.chatforest.com/api/v1/waitlist \
+  -H "Content-Type: application/json" \
+  -d {email: you@example.com}</pre>
+
+    </div>
+</div>
+</body>
+</html>

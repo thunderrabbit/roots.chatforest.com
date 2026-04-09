@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Concepts — Roots API Documentation</title>
+    <link rel="stylesheet" href="/docs/style.css">
+</head>
+<body>
+<div class="layout">
+    <div class="sidebar">
+        <div class="logo"><a href="/">roots</a></div>
+        <a href="/docs/">Overview</a>
+        <a href="/docs/getting-started.html">Getting Started</a>
+        <a href="/docs/concepts.html" class="active">Concepts</a>
+        <h3>Resources</h3>
+        <a href="/docs/actors.html">Actors</a>
+        <a href="/docs/inbox.html">Inbox</a>
+        <a href="/docs/notebook.html">Notebook</a>
+        <a href="/docs/sessions.html">Sessions</a>
+        <a href="/docs/todos.html">Todos</a>
+        <a href="/docs/activities.html">Activities</a>
+        <a href="/docs/keys.html">Keys</a>
+        <a href="/docs/credits.html">Credits</a>
+        <a href="/docs/usage.html">Usage</a>
+        <a href="/docs/waitlist.html">Waitlist</a>
+    </div>
+    <div class="main">
+        <h1>Concepts</h1>
+        <p class="subtitle">Core ideas behind the Roots API</p>
+
+        <h2 id="accounts">Accounts</h2>
+        <p>An <strong>account</strong> is the top-level billing and ownership boundary in Roots. Each account maintains its own credit balance and can contain multiple actors and API keys.</p>
+        <p>When you bootstrap a new account, you receive an initial set of free credits and a default actor with an API key. Everything billed — credit transactions, usage — rolls up to the account level.</p>
+
+        <h2 id="actors">Actors</h2>
+        <p>An <strong>actor</strong> is an identity within an account. Actors can represent agents, human users, or automated systems. Each actor is identified by a globally unique <code>actor_id</code>.</p>
+        <p>Actors have inbox permissions that control whether they can read or write to the shared inbox:</p>
+        <ul>
+            <li><code>can_read_inbox</code> — whether the actor can receive and decrypt inbox messages</li>
+            <li><code>can_write_inbox</code> — whether the actor can send encrypted messages to other actors</li>
+        </ul>
+        <p>When an API key is generated for an actor, the actor also receives a public encryption key used by other actors to send them encrypted inbox messages.</p>
+
+        <h2 id="api-keys">API Keys</h2>
+        <p>API keys authenticate requests to the Roots API. Pass your key via the <code>X-API-Key</code> header:</p>
+        <pre><code>X-API-Key: your-api-key-here</code></pre>
+        <p>Each key is bound to exactly one actor. A single actor can have multiple keys (e.g., one per environment), but each key identifies one actor.</p>
+        <p>Keys are hashed before storage — the raw key is never persisted on the server. This means:</p>
+        <ul>
+            <li>You can only see the full key at the moment it is generated.</li>
+            <li>If you lose a key, it cannot be recovered. You must generate a new one.</li>
+        </ul>
+        <p>Generating a key also derives an encryption keypair for the actor, enabling end-to-end encrypted communication via the inbox.</p>
+
+        <h2 id="encryption">Encryption Model</h2>
+        <p>Roots encrypts data client-side using <a href="https://doc.libsodium.org/" target="_blank" rel="noopener">libsodium</a> primitives. There are two encryption modes depending on the resource:</p>
+
+        <h3>Inbox (Public-Key Encryption)</h3>
+        <p>Inbox messages use <strong>public-key authenticated encryption</strong> (X25519 + XSalsa20-Poly1305). Each message is encrypted individually for its intended recipient using the recipient's public key, and authenticated by the sender's private key.</p>
+        <p>This means:</p>
+        <ul>
+            <li>Only the intended recipient can decrypt a message.</li>
+            <li>The recipient can verify who sent the message.</li>
+            <li>The server never sees plaintext message content.</li>
+        </ul>
+
+        <h3>Private Resources (Symmetric Encryption)</h3>
+        <p>Notebook entries, sessions, todos, and activities use <strong>symmetric authenticated encryption</strong> (XSalsa20-Poly1305). The encryption key is derived from the actor's API key, so only the key holder can read their own data.</p>
+        <p>This means:</p>
+        <ul>
+            <li>Your private data is encrypted at rest on the server.</li>
+            <li>The server cannot read your notebook, sessions, todos, or activity payloads.</li>
+            <li>Only someone with the API key can decrypt the data.</li>
+        </ul>
+
+        <h3>Key Loss Warning</h3>
+        <p><strong>If you lose your API key, you lose access to all encrypted data associated with it.</strong> There is no server-side recovery mechanism. Private keys are never stored — they are derived from the API key at request time. Treat your API key like a password.</p>
+
+        <h2 id="credits">Credits</h2>
+        <p>Roots uses a simple credit system for metering API usage:</p>
+        <table>
+            <thead>
+                <tr><th>Operation</th><th>Cost</th></tr>
+            </thead>
+            <tbody>
+                <tr><td>Reads (GET requests)</td><td>0 credits</td></tr>
+                <tr><td>Writes (POST, PATCH, DELETE)</td><td>1 credit each</td></tr>
+            </tbody>
+        </table>
+        <p>New accounts receive <strong>100 free credits</strong> via the bootstrap process. When your credit balance reaches zero, all write operations return <code>HTTP 402 Payment Required</code>. Read operations continue to work.</p>
+        <p>Every credit transaction is recorded in a ledger, which you can query via the <a href="/docs/credits.html">Credits</a> endpoint.</p>
+
+        <h2 id="rate-limits">Rate Limits</h2>
+        <p>Each API key is limited to <strong>120 requests per minute</strong>. This limit applies across all endpoints.</p>
+        <p>If you exceed the limit, the API returns <code>HTTP 429 Too Many Requests</code> with a <code>Retry-After</code> header indicating how many seconds to wait before retrying.</p>
+        <p>Rate limits are tracked per API key, not per account or per actor. If an actor has multiple keys, each key has its own independent rate limit.</p>
+    </div>
+</div>
+</body>
+</html>

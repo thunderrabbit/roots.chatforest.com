@@ -1,0 +1,145 @@
+:root {
+    --bg: #0a0e14;
+    --surface: #111820;
+    --border: #1e2a38;
+    --text: #c5cdd8;
+    --text-bright: #e8ecf1;
+    --accent: #4fc1a6;
+    --accent-dim: #2a8a6e;
+    --red: #e55;
+    --yellow: #e5c07b;
+    --purple: #c792ea;
+    --mono: 'SF Mono', 'Cascadia Code', 'Fira Code', 'JetBrains Mono', monospace;
+    --sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+    font-family: var(--sans);
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+}
+.layout { display: flex; min-height: 100vh; }
+.sidebar {
+    width: 240px;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    padding: 24px 16px;
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    overflow-y: auto;
+}
+.sidebar .logo {
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--accent);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-bottom: 24px;
+}
+.sidebar .logo a { color: var(--accent); text-decoration: none; }
+.sidebar h3 {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: #556;
+    margin: 20px 0 8px;
+}
+.sidebar a {
+    display: block;
+    padding: 4px 8px;
+    margin: 2px 0;
+    color: var(--text);
+    text-decoration: none;
+    font-size: 14px;
+    border-radius: 4px;
+}
+.sidebar a:hover { background: rgba(79,193,166,0.1); color: var(--text-bright); }
+.sidebar a.active { background: rgba(79,193,166,0.15); color: var(--accent); }
+.main { margin-left: 240px; flex: 1; padding: 32px 48px; max-width: 860px; }
+h1 { font-size: 28px; color: var(--text-bright); margin-bottom: 8px; }
+h2 { font-size: 20px; color: var(--text-bright); margin: 32px 0 12px; border-bottom: 1px solid var(--border); padding-bottom: 8px; }
+h3 { font-size: 16px; color: var(--text-bright); margin: 24px 0 8px; }
+p { margin-bottom: 12px; font-size: 15px; }
+.subtitle { font-size: 16px; color: var(--text); margin-bottom: 24px; }
+code {
+    font-family: var(--mono);
+    font-size: 13px;
+    background: var(--surface);
+    padding: 2px 6px;
+    border-radius: 3px;
+    color: var(--accent);
+}
+pre {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 16px;
+    overflow-x: auto;
+    margin: 12px 0 16px;
+    font-family: var(--mono);
+    font-size: 13px;
+    line-height: 1.5;
+    color: var(--text);
+}
+.endpoint {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    margin: 16px 0;
+    padding: 20px;
+}
+.endpoint .method {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-family: var(--mono);
+    font-size: 12px;
+    font-weight: 700;
+    margin-right: 8px;
+}
+.endpoint .method.get { background: #1a3a2a; color: var(--accent); }
+.endpoint .method.post { background: #2a2a1a; color: var(--yellow); }
+.endpoint .method.patch { background: #2a1a3a; color: var(--purple); }
+.endpoint .method.delete { background: #3a1a1a; color: var(--red); }
+.endpoint .path { font-family: var(--mono); font-size: 14px; color: var(--text-bright); }
+.endpoint .desc { margin-top: 8px; font-size: 14px; }
+.badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 600;
+}
+.badge.auth { background: #2a1a1a; color: var(--red); }
+.badge.free { background: #1a3a2a; color: var(--accent); }
+.badge.write { background: #2a2a1a; color: var(--yellow); }
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 12px 0 16px;
+    font-size: 14px;
+}
+th, td {
+    padding: 8px 12px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+}
+th { color: var(--text-bright); font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
+td code { font-size: 12px; }
+ul, ol { margin: 8px 0 12px 20px; font-size: 15px; }
+li { margin: 4px 0; }
+.note {
+    background: rgba(79,193,166,0.08);
+    border-left: 3px solid var(--accent);
+    padding: 12px 16px;
+    margin: 16px 0;
+    font-size: 14px;
+    border-radius: 0 4px 4px 0;
+}
+@media (max-width: 768px) {
+    .sidebar { display: none; }
+    .main { margin-left: 0; padding: 24px 16px; }
+}
