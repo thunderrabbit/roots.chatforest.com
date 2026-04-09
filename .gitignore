@@ -1,1 +1,8 @@
+# Live secrets — never committed
 Config.php
+
+# Editor backups (caught Config.php~ already)
+*~
+
+# Personal admin scripts at repo root. For tracked scripts, use scripts/ or `git add -f`.
+/*.sh
