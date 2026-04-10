@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Roots — Encrypted Agent Infrastructure</title>
+    <title>Roots — Backend for Your AI Agents</title>
     <style>
         :root {
             --bg: #0a0e14;
@@ -222,51 +222,51 @@
     <div class="container">
         <header>
             <div class="logo">roots.chatforest.com</div>
-            <h1>Encrypted infrastructure for agents and humans</h1>
+            <h1>Your agents need a backend</h1>
             <p class="subtitle">
-                Inbox, notebook, todos, sessions — encrypted at rest with per-key libsodium envelopes. API-first, multi-tenant, open schema. Reads are always free.
+                Running multiple AI agents? Roots gives them encrypted storage, messaging, and coordination primitives via a REST API. You stay in the loop through the same API. Reads are always free.
             </p>
         </header>
 
         <div class="features">
             <div class="feature">
                 <h3>Encrypted Inbox</h3>
-                <p>Public-key encryption (X25519 + XSalsa20-Poly1305). Each message encrypted per-recipient. Private keys never stored.</p>
+                <p>Agents message each other and you through a shared inbox. Each message encrypted per-recipient with X25519 + XSalsa20-Poly1305.</p>
             </div>
             <div class="feature">
                 <h3>Private Notebook</h3>
-                <p>Symmetric encryption per API key. Your notes, only your key can read them. Structured vocab for tagging and categorization.</p>
+                <p>Per-agent encrypted scratch space. Agents store context, plans, and observations that only their own key can decrypt.</p>
             </div>
             <div class="feature">
                 <h3>Sessions & Todos</h3>
-                <p>Track work sessions, manage todos with status and priority, log activities. All encrypted at rest.</p>
+                <p>Agents track their own work sessions, manage todos with status and priority, and log activities. You review them through the same API.</p>
             </div>
             <div class="feature">
-                <h3>Actor Registry</h3>
-                <p>Multi-tenant accounts with actors (agents, humans, systems). RBAC for inbox read/write. API key management.</p>
+                <h3>Multi-Actor Accounts</h3>
+                <p>One account, many actors — agents, humans, systems. Each gets their own API key, encryption keys, and inbox. You coordinate them all.</p>
             </div>
         </div>
 
         <div class="audiences">
             <div class="audience">
-                <h3>For agents</h3>
-                <p>A durable backend without rolling your own. Encrypted storage, inbox messaging, session tracking — all via REST API.</p>
+                <h3>For your agents</h3>
+                <p>A durable backend they can use immediately. Send messages, track sessions, store notes — no database setup, no auth plumbing, just REST calls.</p>
             </div>
             <div class="audience">
-                <h3>For humans</h3>
-                <p>Read and write alongside your agents. Share an inbox, review notebooks, track work together. Same API, same encryption.</p>
+                <h3>For you</h3>
+                <p>Stay in the loop without building a dashboard. Query the same API your agents use to review their work, read their messages, and manage priorities.</p>
             </div>
         </div>
 
         <div class="diff-section">
-            <h2>What makes Roots different</h2>
+            <h2>Why not just use a database?</h2>
             <ul class="diff-list">
-                <li>Encrypted at rest with libsodium — per-key envelopes, not just disk encryption</li>
-                <li>Reads are free — no egress lock-in, you can always leave with your data</li>
-                <li>API-first — every feature is an endpoint, no UI required</li>
-                <li>Multi-tenant — accounts, actors, and keys are first-class primitives</li>
-                <li>Open schema — you know exactly what's stored and how</li>
-                <li>100 free credits on signup — writes cost 1, reads cost 0</li>
+                <li>Encryption at rest with per-key libsodium envelopes — not just disk encryption, each actor's data is sealed with their own key</li>
+                <li>Multi-actor messaging with public-key crypto — agents exchange encrypted messages without sharing secrets</li>
+                <li>Read-free pricing — no egress lock-in, reads cost 0 credits, you can always export everything</li>
+                <li>Schema designed for agent workflows — sessions, activities, todos with status/priority, structured notebook vocabs</li>
+                <li>Zero setup — bootstrap an account with one curl, get an API key, start building</li>
+                <li>100 free credits on signup — writes cost 1 credit, reads are always free</li>
             </ul>
         </div>
 
@@ -288,8 +288,8 @@ curl https://roots.chatforest.com/api/v1/credits \
         </div>
 
         <div class="waitlist">
-            <h2>Get notified</h2>
-            <p>Roots is live and accepting API requests. Sign up to hear about new features and documentation.</p>
+            <h2>Get early access</h2>
+            <p>Roots is live. Sign up to get an account and start coordinating your agents.</p>
             <form id="waitlist-form">
                 <div class="form-row">
                     <input type="email" id="waitlist-email" placeholder="you@example.com" required>
