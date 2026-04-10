@@ -13,7 +13,7 @@ try {
     $pdo->exec("ALTER TABLE accounts ADD COLUMN account_type ENUM('operator','customer') NOT NULL DEFAULT 'customer'");
     $pdo->exec("UPDATE accounts SET account_type = 'operator' WHERE account_id = 10");
 
-    $stmt = $pdo->query("SELECT account_id, account_name, account_type FROM accounts");
+    $stmt = $pdo->query("SELECT account_id, name, account_type FROM accounts");
     $rows = $stmt->fetchAll(\PDO::FETCH_ASSOC);
 
     echo json_encode(["status" => "done", "accounts" => $rows]);

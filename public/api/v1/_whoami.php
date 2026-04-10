@@ -10,7 +10,7 @@ if ($method !== "GET") {
 
 // Get account details
 $acct_stmt = $pdo->prepare(
-    "SELECT account_id, account_name, account_type, credit_balance
+    "SELECT account_id, name, account_type, credit_balance
      FROM accounts WHERE account_id = ?"
 );
 $acct_stmt->execute([$auth_account_id]);
@@ -31,7 +31,7 @@ echo json_encode([
     "actor_name"        => $auth_actor["name"],
     "actor_type"        => $auth_actor["actor_type"],
     "account_id"        => (int) $account["account_id"],
-    "account_name"      => $account["account_name"],
+    "account_name"      => $account["name"],
     "account_type"      => $account["account_type"],
     "permissions"       => [
         "can_read_inbox"  => (bool) $auth_actor["can_read_inbox"],
