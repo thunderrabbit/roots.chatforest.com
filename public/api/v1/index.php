@@ -32,14 +32,12 @@ if ($resource === "bootstrap" && $method === "POST") {
     exit;
 }
 
-// Waitlist — sign up and verify are unauthenticated; status requires auth (falls through)
+// Waitlist — no auth required
 if ($resource === "waitlist") {
+    // POST /waitlist — sign up
+    // GET  /waitlist/verify?token=XXX — verify email
     $sub = $segments[3] ?? "";
-    if ($method === "POST" && $sub === "") {
-        include __DIR__ . "/_waitlist.php";
-        exit;
-    }
-    if ($method === "GET" && $sub === "verify") {
+    if ($method === "POST" || ($method === "GET" && $sub === "verify")) {
         include __DIR__ . "/_waitlist.php";
         exit;
     }
@@ -171,7 +169,6 @@ $handler_map = [
     "activities" => "_activities.php",
     "usage"      => "_usage.php",
     "credits"    => "_credits.php",
-    "waitlist"   => "_waitlist_status.php",
 ];
 
 if (isset($handler_map[$resource])) {
