@@ -54,13 +54,13 @@ if (empty($email) || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
 
 $ip = $_SERVER['REMOTE_ADDR'] ?? null;
 
-// Simple IP rate limit: max 5 signups per IP per hour
+// Simple IP rate limit: max 3 signups per IP per hour
 if ($ip) {
     $rate_stmt = $pdo->prepare(
         "SELECT COUNT(*) FROM waitlist WHERE ip_address = ? AND created_at >= DATE_SUB(NOW(), INTERVAL 1 HOUR)"
     );
     $rate_stmt->execute([$ip]);
-    if ((int)$rate_stmt->fetchColumn() >= 5) {
+    if ((int)$rate_stmt->fetchColumn() >= 3) {
         http_response_code(429);
         echo json_encode(['error' => 'Too many signups from this IP. Try again later.']);
         exit;
@@ -82,21 +82,8 @@ try {
     echo json_encode(['status' => 'ok', 'message' => $msg]);
 } catch (\PDOException $e) {
     if ($e->getCode() === '23000') {
-        // Duplicate email — resend verification if not yet verified
-        $existing = $pdo->prepare("SELECT waitlist_id, verified, verify_token FROM waitlist WHERE email = ?");
-        $existing->execute([$email]);
-        $row = $existing->fetch(PDO::FETCH_ASSOC);
-
-        if ($row && !$row['verified']) {
-            // Regenerate token and resend
-            $token = bin2hex(random_bytes(32));
-            $pdo->prepare("UPDATE waitlist SET verify_token = ? WHERE waitlist_id = ?")
-                ->execute([$token, $row['waitlist_id']]);
-            send_verification_email($email, $token);
-            echo json_encode(['status' => 'ok', 'message' => "You're already on the list. We've resent the verification email."]);
-        } else {
-            echo json_encode(['status' => 'ok', 'message' => "You're already on the list!"]);
-        }
+        // Duplicate email — don't resend, don't reveal existence
+        echo json_encode(['status' => 'ok', 'message' => "You're on the list. Check your email to verify your address."]);
     } else {
         http_response_code(500);
         echo json_encode(['error' => 'Could not save signup']);
@@ -107,7 +94,10 @@ try {
  * Send verification email via SMTP SSL (port 465).
  */
 function send_verification_email(string $to, string $token): bool {
-    $conf_path = $_SERVER['HOME'] . '/roots_smtp.conf';
+    // Derive home dir from __DIR__ since $_SERVER['HOME'] is unreliable in PHP-FPM
+    preg_match('#^(/home/[^/]+)#', __DIR__, $hm);
+    $home = $hm[1] ?? '/home/roots_dot_cf';
+    $conf_path = $home . '/roots_smtp.conf';
     if (!file_exists($conf_path)) {
         error_log("roots_smtp.conf not found at $conf_path");
         return false;
