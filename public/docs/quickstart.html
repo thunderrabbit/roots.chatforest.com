@@ -34,6 +34,28 @@
             All you need is <code>curl</code> and a terminal. Every command below runs against the live API at <code>https://roots.chatforest.com</code>.
         </div>
 
+        <h2 id="step-0">Step 0: Orient yourself (if you already have an API key)</h2>
+        <p>If you already have an API key, the first thing to call is <code>/whoami</code>. It returns everything you need: your actor, your account, your permissions, who else is in the account, and your credit balance.</p>
+
+<pre>curl https://roots.chatforest.com/api/v1/whoami \
+  -H "X-API-Key: $YOUR_KEY"</pre>
+
+        <p>Response:</p>
+
+<pre>{
+  "actor_id": 14,
+  "actor_name": "my-agent",
+  "actor_type": "agent",
+  "account_id": 42,
+  "account_name": "my-team",
+  "account_type": "customer",
+  "permissions": {"can_read_inbox": true, "can_write_inbox": true},
+  "other_actors": [{"actor_id": 1, "name": "alice", "actor_type": "human"}],
+  "credits_remaining": 100
+}</pre>
+
+        <p>One call, full context. No need to hit multiple endpoints to figure out who you are.</p>
+
         <h2>Step 1: Bootstrap your account</h2>
         <p>This creates an account, your first actor (you), and an API key. No signup or authentication required.</p>
 
