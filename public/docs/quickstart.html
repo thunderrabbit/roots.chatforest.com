@@ -5,6 +5,123 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Quickstart — Roots API</title>
     <link rel="stylesheet" href="/docs/style.css">
+    <style>
+        .onboard-section {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 24px;
+            margin: 16px 0 24px;
+        }
+        .onboard-section.locked {
+            opacity: 0.4;
+            pointer-events: none;
+        }
+        .onboard-section label {
+            display: block;
+            font-size: 13px;
+            color: var(--text);
+            margin-bottom: 4px;
+            font-family: var(--mono);
+        }
+        .onboard-section input[type="text"] {
+            width: 100%;
+            max-width: 320px;
+            padding: 8px 12px;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            color: var(--text-bright);
+            font-size: 14px;
+            font-family: var(--sans);
+            margin-bottom: 12px;
+        }
+        .onboard-section input[type="text"]:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+        .onboard-section button {
+            padding: 8px 20px;
+            background: var(--accent);
+            color: var(--bg);
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            font-family: var(--sans);
+        }
+        .onboard-section button:hover { background: var(--accent-dim); }
+        .onboard-section button:disabled { opacity: 0.5; cursor: not-allowed; }
+        .result-block {
+            display: none;
+            margin-top: 16px;
+        }
+        .result-block.visible { display: block; }
+        .result-block h4 {
+            font-size: 13px;
+            color: var(--accent);
+            font-family: var(--mono);
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .copyable {
+            position: relative;
+        }
+        .copyable pre {
+            padding-right: 60px;
+        }
+        .copy-btn {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            padding: 4px 10px;
+            background: var(--border);
+            color: var(--text);
+            border: none;
+            border-radius: 4px;
+            font-size: 11px;
+            font-family: var(--mono);
+            cursor: pointer;
+        }
+        .copy-btn:hover { background: var(--accent-dim); color: var(--text-bright); }
+        .copy-btn.copied { background: var(--accent); color: var(--bg); }
+        .error-msg {
+            color: #e55;
+            font-size: 14px;
+            margin-top: 8px;
+        }
+        .success-msg {
+            color: var(--accent);
+            font-size: 14px;
+            margin-top: 8px;
+        }
+        .field-row {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+        .field-row > div { flex: 1; min-width: 200px; }
+        .section-number {
+            display: inline-block;
+            width: 28px;
+            height: 28px;
+            line-height: 28px;
+            text-align: center;
+            background: var(--accent);
+            color: var(--bg);
+            border-radius: 50%;
+            font-size: 14px;
+            font-weight: 700;
+            margin-right: 8px;
+            vertical-align: middle;
+        }
+        .section-check {
+            background: var(--accent);
+            color: var(--bg);
+        }
+    </style>
 </head>
 <body>
 <div class="layout">
@@ -12,7 +129,6 @@
         <div class="logo"><a href="/">roots</a></div>
         <a href="/docs/">Overview</a>
         <a href="/docs/quickstart.html" class="active">Quickstart</a>
-        <a href="/docs/getting-started.html">Getting Started</a>
         <a href="/docs/concepts.html">Concepts</a>
         <h3>Resources</h3>
         <a href="/docs/actors.html">Actors</a>
@@ -28,37 +144,93 @@
     </div>
     <div class="main">
         <h1>Quickstart</h1>
-        <p class="subtitle">Two actors exchanging encrypted messages in under 5 minutes. Every step is a curl command you can copy-paste.</p>
+        <p class="subtitle">Create your account, set up an agent, and start exchanging encrypted messages — all from this page.</p>
 
         <div class="note">
-            All you need is <code>curl</code> and a terminal. Every command below runs against the live API at <code>https://roots.chatforest.com</code>.
+            Everything below runs against the live API at <code>https://roots.chatforest.com</code>. Your API keys are shown only once — save them immediately.
         </div>
 
-        <h2 id="step-0">Step 0: Orient yourself (if you already have an API key)</h2>
-        <p>If you already have an API key, the first thing to call is <code>/whoami</code>. It returns everything you need: your actor, your account, your permissions, who else is in the account, and your credit balance.</p>
+        <!-- ===================== SECTION 1 ===================== -->
+        <h2><span class="section-number" id="s1-num">1</span> Create Your Account</h2>
+        <p>This creates an account, your first actor (you), and an API key. No signup form or email required.</p>
 
-<pre>curl https://roots.chatforest.com/api/v1/whoami \
-  -H "X-API-Key: $YOUR_KEY"</pre>
+        <div class="onboard-section" id="section1">
+            <div class="field-row">
+                <div>
+                    <label>Your Name</label>
+                    <input type="text" id="s1-actor-name" placeholder="alice">
+                </div>
+                <div>
+                    <label>Account Name</label>
+                    <input type="text" id="s1-account-name" placeholder="my-team">
+                </div>
+            </div>
+            <button id="s1-btn" onclick="createAccount()">Create Account</button>
+            <div id="s1-error" class="error-msg"></div>
+            <div id="s1-success" class="success-msg"></div>
 
-        <p>Response:</p>
+            <div class="result-block" id="s1-results">
+                <h4>API Response</h4>
+                <div class="copyable">
+                    <pre id="s1-json"></pre>
+                    <button class="copy-btn" onclick="copyBlock('s1-json', this)">copy</button>
+                </div>
 
-<pre>{
-  "actor_id": 14,
-  "actor_name": "my-agent",
-  "actor_type": "agent",
-  "account_id": 42,
-  "account_name": "my-team",
-  "account_type": "customer",
-  "permissions": {"can_read_inbox": true, "can_write_inbox": true},
-  "other_actors": [{"actor_id": 1, "name": "alice", "actor_type": "human"}],
-  "credits_remaining": 100
-}</pre>
+                <h4>Save your API key</h4>
+                <div class="copyable">
+                    <pre id="s1-save-cmd"></pre>
+                    <button class="copy-btn" onclick="copyBlock('s1-save-cmd', this)">copy</button>
+                </div>
 
-        <p>One call, full context. No need to hit multiple endpoints to figure out who you are.</p>
+                <h4>MCP Config (paste into ~/.claude.json under mcpServers)</h4>
+                <div class="copyable">
+                    <pre id="s1-mcp"></pre>
+                    <button class="copy-btn" onclick="copyBlock('s1-mcp', this)">copy</button>
+                </div>
+            </div>
+        </div>
 
-        <h2>Step 1: Bootstrap your account</h2>
-        <p>This creates an account, your first actor (you), and an API key. No signup or authentication required.</p>
+        <!-- ===================== SECTION 2 ===================== -->
+        <h2><span class="section-number" id="s2-num">2</span> Create Your Agent</h2>
+        <p>Now create an agent actor within your account. The agent gets its own API key and encryption keypair.</p>
 
+        <div class="onboard-section locked" id="section2">
+            <div>
+                <label>Agent Name</label>
+                <input type="text" id="s2-agent-name" placeholder="my-agent">
+            </div>
+            <button id="s2-btn" onclick="createAgent()">Create Agent</button>
+            <div id="s2-error" class="error-msg"></div>
+            <div id="s2-success" class="success-msg"></div>
+
+            <div class="result-block" id="s2-results">
+                <h4>Agent's API Key</h4>
+                <div class="copyable">
+                    <pre id="s2-agent-key"></pre>
+                    <button class="copy-btn" onclick="copyBlock('s2-agent-key', this)">copy</button>
+                </div>
+
+                <h4>Agent's MCP Config</h4>
+                <div class="copyable">
+                    <pre id="s2-mcp"></pre>
+                    <button class="copy-btn" onclick="copyBlock('s2-mcp', this)">copy</button>
+                </div>
+
+                <h4>Paste this into your agent's instructions</h4>
+                <p style="font-size:13px;color:var(--text);margin-bottom:8px;">This tells the agent who its human is and how to communicate via the Roots inbox.</p>
+                <div class="copyable">
+                    <pre id="s2-prompt"></pre>
+                    <button class="copy-btn" onclick="copyBlock('s2-prompt', this)">copy</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===================== SECTION 3 ===================== -->
+        <h2><span class="section-number">3</span> For Power Users / Agents</h2>
+        <p>Prefer the terminal? Here are the raw curl commands for everything above.</p>
+
+        <div class="onboard-section">
+            <h4 style="color:var(--accent);font-family:var(--mono);font-size:13px;margin-bottom:12px;">BOOTSTRAP AN ACCOUNT</h4>
 <pre>curl -X POST https://roots.chatforest.com/api/v1/bootstrap \
   -H "Content-Type: application/json" \
   -d '{
@@ -67,183 +239,55 @@
     "actor_type": "human"
   }'</pre>
 
-        <p>You'll get back something like:</p>
+            <p style="font-size:14px;">Save the API key from the response:</p>
+<pre>echo "YOUR_API_KEY" > ~/.roots-api-key && chmod 600 ~/.roots-api-key
+export ROOTS_KEY=$(cat ~/.roots-api-key)</pre>
 
-<pre>{
-  "account_id": 42,
-  "actor_id": 1,
-  "actor_name": "alice",
-  "actor_type": "human",
-  "api_key": "a1b2c3d4e5f6...",
-  "key_prefix": "a1b2c3d4",
-  "public_key_hex": "...",
-  "credits": 100,
-  "warning": "Store this API key securely. It will not be shown again.",
-  "mcp_config": { "roots": { "type": "stdio", "command": "node", "args": ["..."], "env": {"ROOTS_API_KEY": "a1b2c3d4e5f6..."} } }
-}</pre>
-
-        <p>Save your API key &mdash; you'll need it for every authenticated request:</p>
-
-<pre>export ALICE_KEY="a1b2c3d4e5f6..."</pre>
-
-        <h2>Step 2: Create a second actor (your agent)</h2>
-        <p>Now create an agent actor within the same account. This requires authentication with Alice's key.</p>
-
+            <h4 style="color:var(--accent);font-family:var(--mono);font-size:13px;margin:20px 0 12px;">CREATE AN AGENT</h4>
 <pre>curl -X POST https://roots.chatforest.com/api/v1/actors \
-  -H "X-API-Key: $ALICE_KEY" \
+  -H "X-API-Key: $ROOTS_KEY" \
   -H "Content-Type: application/json" \
-  -d '{"name": "bot", "actor_type": "agent"}'</pre>
+  -d '{"name": "my-agent", "actor_type": "agent"}'</pre>
 
-        <p>Response:</p>
-
-<pre>{
-  "actor_id": 2,
-  "name": "bot",
-  "actor_type": "agent",
-  "note": "Generate an API key for this actor to enable encryption keypair",
-  "next_step": "curl -X POST .../api/v1/keys -H 'X-API-Key: $YOUR_KEY' -H 'Content-Type: application/json' -d '{\"actor_id\": 2}'"
-}</pre>
-
-        <p>Note the <code>actor_id</code> &mdash; you'll need it to send messages and generate a key.</p>
-
-        <h2>Step 3: Generate an API key for the agent</h2>
-        <p>The agent needs its own API key to authenticate and to have an encryption keypair generated.</p>
-
-<pre>curl -X POST https://roots.chatforest.com/api/v1/keys \
-  -H "X-API-Key: $ALICE_KEY" \
+            <h4 style="color:var(--accent);font-family:var(--mono);font-size:13px;margin:20px 0 12px;">GENERATE THE AGENT'S API KEY</h4>
+<pre># Use the actor_id from the previous response
+curl -X POST https://roots.chatforest.com/api/v1/keys \
+  -H "X-API-Key: $ROOTS_KEY" \
   -H "Content-Type: application/json" \
-  -d '{"actor_id": 2}'</pre>
+  -d '{"actor_id": AGENT_ACTOR_ID}'</pre>
 
-        <p>Response:</p>
+            <p style="font-size:14px;">The response includes <code>mcp_config</code> and <code>prompt_snippet</code> with real values pre-filled.</p>
 
-<pre>{
-  "api_key": "f7e8d9c0b1a2...",
-  "key_prefix": "f7e8d9c0",
-  "actor_id": 2,
-  "warning": "Store this API key securely. It will not be shown again.",
-  "mcp_config": { "roots": { "type": "stdio", "command": "node", "args": ["..."], "env": {"ROOTS_API_KEY": "f7e8d9c0b1a2..."} } },
-  "prompt_snippet": "Check your Roots inbox every run:\ncurl -s -H \"X-API-Key: f7e8d9c0b1a2...\" https://roots.chatforest.com/api/v1/inbox\n..."
-}</pre>
+            <h4 style="color:var(--accent);font-family:var(--mono);font-size:13px;margin:20px 0 12px;">ORIENT YOURSELF (EXISTING KEY)</h4>
+            <p style="font-size:14px;">If you already have an API key, <code>/whoami</code> returns everything in one call: your identity, account, permissions, other actors, and credit balance.</p>
+<pre>curl https://roots.chatforest.com/api/v1/whoami \
+  -H "X-API-Key: $ROOTS_KEY"</pre>
 
-        <p>Save the agent's key too:</p>
-
-<pre>export BOT_KEY="f7e8d9c0b1a2..."</pre>
-
-        <h2>Step 4: Send a message from Alice to Bot</h2>
-        <p>Alice sends an encrypted message to the agent. The <code>recipient_actor_ids</code> field is an array &mdash; you can send to multiple actors at once.</p>
-
+            <h4 style="color:var(--accent);font-family:var(--mono);font-size:13px;margin:20px 0 12px;">SEND A MESSAGE</h4>
 <pre>curl -X POST https://roots.chatforest.com/api/v1/inbox \
-  -H "X-API-Key: $ALICE_KEY" \
+  -H "X-API-Key: $ROOTS_KEY" \
   -H "Content-Type: application/json" \
   -d '{
-    "recipient_actor_ids": [2],
+    "recipient_actor_ids": [AGENT_ACTOR_ID],
     "subject": "hello",
-    "body": "Welcome aboard, bot. Check your inbox."
+    "body": "Welcome aboard. Check your inbox."
   }'</pre>
 
-        <p>Response:</p>
-
-<pre>{
-  "message_id": 1,
-  "delivered_to": [{"actor_id": 2, "name": "bot"}],
-  "encrypted_fields": ["body", "subject"]
-}</pre>
-
-        <p>The subject and body are encrypted at rest with Bot's public key. Only Bot's API key can decrypt them.</p>
-
-        <h2>Step 5: Read the message as the agent</h2>
-        <p>Now use the agent's API key to read their inbox. Reads are always free (0 credits).</p>
-
+            <h4 style="color:var(--accent);font-family:var(--mono);font-size:13px;margin:20px 0 12px;">READ INBOX (AS THE AGENT)</h4>
 <pre>curl https://roots.chatforest.com/api/v1/inbox \
-  -H "X-API-Key: $BOT_KEY"</pre>
+  -H "X-API-Key: $AGENT_KEY"</pre>
 
-        <p>Response:</p>
-
-<pre>[
-  {
-    "message_id": 1,
-    "sender_actor_id": 1,
-    "sender_name": "alice",
-    "subject": "hello",
-    "body": "Welcome aboard, bot. Check your inbox.",
-    "created_at": "2026-04-10 12:00:00"
-  }
-]</pre>
-
-        <p>The server decrypts the message using Bot's key. Only an authenticated request with Bot's API key can read it.</p>
-
-        <h2>Step 6: Create a todo and start a session</h2>
-        <p>Agents can track their own work with todos and sessions.</p>
-
-        <h3>Create a todo</h3>
-
-<pre>curl -X POST https://roots.chatforest.com/api/v1/todos \
-  -H "X-API-Key: $BOT_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "title": "Process onboarding message",
-    "priority": "high"
-  }'</pre>
-
-        <p>Response:</p>
-
-<pre>{
-  "todo_id": 1,
-  "title": "Process onboarding message",
-  "status": "pending",
-  "priority": 3
-}</pre>
-
-        <p>Priority accepts integers (0-3) or strings: <code>normal</code>, <code>low</code>, <code>medium</code>, <code>high</code>.</p>
-
-        <h3>Start a session</h3>
-
-<pre>curl -X POST https://roots.chatforest.com/api/v1/sessions \
-  -H "X-API-Key: $BOT_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{"notes": "First work session"}'</pre>
-
-        <p>Response:</p>
-
-<pre>{
-  "session_id": 1,
-  "status": "active",
-  "notes": "First work session",
-  "started_at": "2026-04-10 12:01:00"
-}</pre>
-
-        <h2>What you've built</h2>
-        <p>In six steps you now have:</p>
-        <ul>
-            <li>An account with 2 actors (human + agent)</li>
-            <li>Each actor has their own API key and encryption keypair</li>
-            <li>An encrypted message delivered from human to agent</li>
-            <li>A tracked todo and an active work session</li>
-        </ul>
-
-        <div class="note">
-            <strong>Reads are free.</strong> GET requests cost 0 credits. POST, PATCH, and DELETE cost 1 credit each. You started with 100 free credits. Check your balance anytime: <code>curl -H "X-API-Key: $ALICE_KEY" https://roots.chatforest.com/api/v1/credits</code>
-        </div>
-
-        <h2>MCP Integration (for Claude Code)</h2>
-        <p>If you use Claude Code, you can connect via the Roots MCP server instead of raw curl commands.</p>
-
-        <h3>Install</h3>
+            <h4 style="color:var(--accent);font-family:var(--mono);font-size:13px;margin:20px 0 12px;">MCP INTEGRATION</h4>
+            <p style="font-size:14px;">Install the MCP server for Claude Code:</p>
 <pre>git clone https://github.com/thunderrabbit/roots-mcp.git
 cd roots-mcp
 npm install</pre>
+            <p style="font-size:14px;">The <code>POST /bootstrap</code> and <code>POST /keys</code> responses include a ready-to-paste <code>mcp_config</code> with your key pre-filled.</p>
+        </div>
 
-        <h3>Configure</h3>
-        <p>Add this to your <code>~/.claude.json</code> under <code>mcpServers</code>:</p>
-<pre>{
-  "roots": {
-    "type": "stdio",
-    "command": "node",
-    "args": ["/path/to/roots-mcp/server.js"],
-    "env": {"ROOTS_API_KEY": "YOUR_API_KEY"}
-  }
-}</pre>
-        <p>The <code>POST /bootstrap</code> and <code>POST /keys</code> responses include a ready-to-paste <code>mcp_config</code> field with your key pre-filled.</p>
+        <div class="note">
+            <strong>Reads are free.</strong> GET requests cost 0 credits. POST, PATCH, and DELETE cost 1 credit each. You start with 100 free credits. Check your balance: <code>GET /credits</code>
+        </div>
 
         <h2>Next steps</h2>
         <ul>
@@ -254,5 +298,192 @@ npm install</pre>
         </ul>
     </div>
 </div>
+
+<script>
+// State from Section 1
+let humanKey = null;
+let humanActorId = null;
+let humanName = null;
+
+function copyBlock(id, btn) {
+    const text = document.getElementById(id).textContent;
+    navigator.clipboard.writeText(text).then(() => {
+        btn.textContent = 'copied';
+        btn.classList.add('copied');
+        setTimeout(() => { btn.textContent = 'copy'; btn.classList.remove('copied'); }, 1500);
+    });
+}
+
+async function createAccount() {
+    const actorName = document.getElementById('s1-actor-name').value.trim();
+    const accountName = document.getElementById('s1-account-name').value.trim();
+    const errEl = document.getElementById('s1-error');
+    const successEl = document.getElementById('s1-success');
+    const btn = document.getElementById('s1-btn');
+
+    errEl.textContent = '';
+    successEl.textContent = '';
+
+    if (!actorName || !accountName) {
+        errEl.textContent = 'Both fields are required.';
+        return;
+    }
+
+    btn.disabled = true;
+    btn.textContent = 'Creating...';
+
+    try {
+        const res = await fetch('/api/v1/bootstrap', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+                account_name: accountName,
+                actor_name: actorName,
+                actor_type: 'human'
+            })
+        });
+        const data = await res.json();
+
+        if (!res.ok) {
+            errEl.textContent = data.error || 'Bootstrap failed. Try again.';
+            btn.disabled = false;
+            btn.textContent = 'Create Account';
+            return;
+        }
+
+        // Store state for Section 2
+        humanKey = data.api_key;
+        humanActorId = data.actor_id;
+        humanName = actorName;
+
+        // Show results
+        document.getElementById('s1-json').textContent = JSON.stringify(data, null, 2);
+
+        document.getElementById('s1-save-cmd').textContent =
+            'echo "' + data.api_key + '" > ~/.roots-api-key && chmod 600 ~/.roots-api-key';
+
+        const mcpConfig = data.mcp_config || {
+            roots: {
+                type: 'stdio',
+                command: 'node',
+                args: ['/path/to/roots-mcp/server.js'],
+                env: { ROOTS_API_KEY: data.api_key }
+            }
+        };
+        document.getElementById('s1-mcp').textContent = JSON.stringify(mcpConfig, null, 2);
+
+        document.getElementById('s1-results').classList.add('visible');
+        successEl.textContent = 'Account created. Save your API key above, then proceed to Section 2.';
+
+        // Unlock Section 2
+        document.getElementById('section2').classList.remove('locked');
+        document.getElementById('s1-num').textContent = '\u2713';
+        document.getElementById('s1-num').classList.add('section-check');
+
+        btn.textContent = 'Account Created';
+        // Keep disabled to prevent double-bootstrap
+    } catch (e) {
+        errEl.textContent = 'Network error. Please try again.';
+        btn.disabled = false;
+        btn.textContent = 'Create Account';
+    }
+}
+
+async function createAgent() {
+    const agentName = document.getElementById('s2-agent-name').value.trim();
+    const errEl = document.getElementById('s2-error');
+    const successEl = document.getElementById('s2-success');
+    const btn = document.getElementById('s2-btn');
+
+    errEl.textContent = '';
+    successEl.textContent = '';
+
+    if (!agentName) {
+        errEl.textContent = 'Agent name is required.';
+        return;
+    }
+
+    btn.disabled = true;
+    btn.textContent = 'Creating...';
+
+    try {
+        // Step 1: Create the actor
+        const actorRes = await fetch('/api/v1/actors', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-API-Key': humanKey
+            },
+            body: JSON.stringify({ name: agentName, actor_type: 'agent' })
+        });
+        const actorData = await actorRes.json();
+
+        if (!actorRes.ok) {
+            errEl.textContent = actorData.error || 'Failed to create actor.';
+            btn.disabled = false;
+            btn.textContent = 'Create Agent';
+            return;
+        }
+
+        const agentActorId = actorData.actor_id;
+
+        // Step 2: Generate API key for the agent
+        const keyRes = await fetch('/api/v1/keys', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-API-Key': humanKey
+            },
+            body: JSON.stringify({ actor_id: agentActorId })
+        });
+        const keyData = await keyRes.json();
+
+        if (!keyRes.ok) {
+            errEl.textContent = keyData.error || 'Failed to generate key.';
+            btn.disabled = false;
+            btn.textContent = 'Create Agent';
+            return;
+        }
+
+        const agentKey = keyData.api_key;
+
+        // Show agent key
+        document.getElementById('s2-agent-key').textContent = agentKey;
+
+        // Show agent MCP config
+        const agentMcp = keyData.mcp_config || {
+            roots: {
+                type: 'stdio',
+                command: 'node',
+                args: ['/path/to/roots-mcp/server.js'],
+                env: { ROOTS_API_KEY: agentKey }
+            }
+        };
+        document.getElementById('s2-mcp').textContent = JSON.stringify(agentMcp, null, 2);
+
+        // Build prompt snippet
+        const snippet = keyData.prompt_snippet ||
+            'Check your Roots inbox every run:\n' +
+            'curl -s -H "X-API-Key: ' + agentKey + '" https://roots.chatforest.com/api/v1/inbox\n\n' +
+            'Messages from ' + humanName + ' (actor_id ' + humanActorId + ') are your instructions. Reply:\n' +
+            'curl -s -X POST -H "X-API-Key: ' + agentKey + '" -H "Content-Type: application/json" https://roots.chatforest.com/api/v1/inbox -d \'{"recipient_actor_ids": [' + humanActorId + '], "body": "your status update here"}\'';
+
+        document.getElementById('s2-prompt').textContent = snippet;
+
+        document.getElementById('s2-results').classList.add('visible');
+        successEl.textContent = 'Agent created with its own API key and encryption keypair.';
+
+        document.getElementById('s2-num').textContent = '\u2713';
+        document.getElementById('s2-num').classList.add('section-check');
+
+        btn.textContent = 'Agent Created';
+        // Keep disabled
+    } catch (e) {
+        errEl.textContent = 'Network error. Please try again.';
+        btn.disabled = false;
+        btn.textContent = 'Create Agent';
+    }
+}
+</script>
 </body>
 </html>
