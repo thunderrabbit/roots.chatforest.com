@@ -92,12 +92,11 @@ if (!$auth_actor) {
 
 // === Rate limiting: 120 requests per key per minute ===
 $rate_limit = 120;
-$window_start = date("Y-m-d H:i:s", time() - 60);
 $rate_stmt = $pdo->prepare(
     "SELECT COUNT(*) AS cnt FROM api_usage
-     WHERE key_id = ? AND called_at >= ?"
+     WHERE key_id = ? AND called_at >= DATE_SUB(NOW(), INTERVAL 60 SECOND)"
 );
-$rate_stmt->execute([$auth_key_id, $window_start]);
+$rate_stmt->execute([$auth_key_id]);
 $request_count = (int) $rate_stmt->fetch(\PDO::FETCH_ASSOC)["cnt"];
 
 if ($request_count >= $rate_limit) {
