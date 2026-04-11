@@ -169,10 +169,10 @@
             <div id="s1-success" class="success-msg"></div>
 
             <div class="result-block" id="s1-results">
-                <h4>API Response</h4>
+                <h4>Your API Key</h4>
                 <div class="copyable">
-                    <pre id="s1-json"></pre>
-                    <button class="copy-btn" onclick="copyBlock('s1-json', this)">copy</button>
+                    <pre id="s1-api-key" style="font-size:16px;color:var(--accent);"></pre>
+                    <button class="copy-btn" onclick="copyBlock('s1-api-key', this)">copy</button>
                 </div>
 
                 <h4>Save your API key</h4>
@@ -239,8 +239,9 @@
   }'</pre>
 
             <p style="font-size:14px;">Save the API key from the response:</p>
-<pre>echo "YOUR_API_KEY" > ~/.roots-api-key && chmod 600 ~/.roots-api-key
-export ROOTS_KEY=$(cat ~/.roots-api-key)</pre>
+<pre>echo "YOUR_API_KEY" > roots-api-key
+chmod 600 roots-api-key
+export ROOTS_KEY=$(cat roots-api-key)</pre>
 
             <h4 style="color:var(--accent);font-family:var(--mono);font-size:13px;margin:20px 0 12px;">CREATE AN AGENT</h4>
 <pre>curl -X POST https://roots.chatforest.com/api/v1/actors \
@@ -356,10 +357,10 @@ async function createAccount() {
         humanName = actorName;
 
         // Show results
-        document.getElementById('s1-json').textContent = JSON.stringify(data, null, 2);
+        document.getElementById('s1-api-key').textContent = data.api_key;
 
         document.getElementById('s1-save-cmd').textContent =
-            'echo "' + data.api_key + '" > ~/.roots-api-key && chmod 600 ~/.roots-api-key';
+            'echo "' + data.api_key + '" > roots-api-key\nchmod 600 roots-api-key';
 
         const mcpConfig = data.mcp_config || {
             roots: {
