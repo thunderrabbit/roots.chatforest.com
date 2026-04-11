@@ -63,7 +63,6 @@
             color: var(--accent);
             font-family: var(--mono);
             margin-bottom: 8px;
-            text-transform: uppercase;
             letter-spacing: 0.5px;
         }
         .copyable {
@@ -373,7 +372,7 @@ async function createAccount() {
         document.getElementById('s1-mcp').textContent = JSON.stringify(mcpConfig, null, 2);
 
         document.getElementById('s1-results').classList.add('visible');
-        successEl.textContent = 'Account created. Save your API key above, then proceed to Section 2.';
+        successEl.textContent = 'Account created. Save your API key below, then proceed to Section 2.';
 
         // Unlock Section 2
         document.getElementById('section2').classList.remove('locked');
