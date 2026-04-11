@@ -78,7 +78,8 @@
   "key_prefix": "a1b2c3d4",
   "public_key_hex": "...",
   "credits": 100,
-  "warning": "Store this API key securely. It will not be shown again."
+  "warning": "Store this API key securely. It will not be shown again.",
+  "mcp_config": { "roots": { "type": "stdio", "command": "node", "args": ["..."], "env": {"ROOTS_API_KEY": "a1b2c3d4e5f6..."} } }
 }</pre>
 
         <p>Save your API key &mdash; you'll need it for every authenticated request:</p>
@@ -119,7 +120,9 @@
   "api_key": "f7e8d9c0b1a2...",
   "key_prefix": "f7e8d9c0",
   "actor_id": 2,
-  "warning": "Store this API key securely. It will not be shown again."
+  "warning": "Store this API key securely. It will not be shown again.",
+  "mcp_config": { "roots": { "type": "stdio", "command": "node", "args": ["..."], "env": {"ROOTS_API_KEY": "f7e8d9c0b1a2..."} } },
+  "prompt_snippet": "Check your Roots inbox every run:\ncurl -s -H \"X-API-Key: f7e8d9c0b1a2...\" https://roots.chatforest.com/api/v1/inbox\n..."
 }</pre>
 
         <p>Save the agent's key too:</p>
@@ -221,6 +224,26 @@
         <div class="note">
             <strong>Reads are free.</strong> GET requests cost 0 credits. POST, PATCH, and DELETE cost 1 credit each. You started with 100 free credits. Check your balance anytime: <code>curl -H "X-API-Key: $ALICE_KEY" https://roots.chatforest.com/api/v1/credits</code>
         </div>
+
+        <h2>MCP Integration (for Claude Code)</h2>
+        <p>If you use Claude Code, you can connect via the Roots MCP server instead of raw curl commands.</p>
+
+        <h3>Install</h3>
+<pre>git clone https://github.com/thunderrabbit/roots-mcp.git
+cd roots-mcp
+npm install</pre>
+
+        <h3>Configure</h3>
+        <p>Add this to your <code>~/.claude.json</code> under <code>mcpServers</code>:</p>
+<pre>{
+  "roots": {
+    "type": "stdio",
+    "command": "node",
+    "args": ["/path/to/roots-mcp/server.js"],
+    "env": {"ROOTS_API_KEY": "YOUR_API_KEY"}
+  }
+}</pre>
+        <p>The <code>POST /bootstrap</code> and <code>POST /keys</code> responses include a ready-to-paste <code>mcp_config</code> field with your key pre-filled.</p>
 
         <h2>Next steps</h2>
         <ul>

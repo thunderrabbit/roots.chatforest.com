@@ -170,6 +170,24 @@ switch ($method) {
             break;
         }
 
+        // Build onboarding helpers with the newly generated key
+        $mcp_config = [
+            'roots' => [
+                'type' => 'stdio',
+                'command' => 'node',
+                'args' => ['/path/to/roots-mcp/server.js'],
+                'env' => ['ROOTS_API_KEY' => $raw_key],
+            ],
+        ];
+
+        $creator_name = $auth_actor['name'];
+        $creator_id = (int)$auth_actor['actor_id'];
+        $prompt_snippet = "Check your Roots inbox every run:\n"
+            . "curl -s -H \"X-API-Key: $raw_key\" https://roots.chatforest.com/api/v1/inbox\n\n"
+            . "Messages from $creator_name (actor_id $creator_id) are your instructions. Reply:\n"
+            . "curl -s -X POST -H \"X-API-Key: $raw_key\" -H \"Content-Type: application/json\" "
+            . "https://roots.chatforest.com/api/v1/inbox -d '{\"recipient_actor_ids\": [$creator_id], \"body\": \"status\"}'";
+
         http_response_code(201);
         echo json_encode([
             'key_id' => $new_key_id,
@@ -177,7 +195,9 @@ switch ($method) {
             'api_key' => $raw_key,
             'key_prefix' => $key_prefix,
             'public_key_hex' => bin2hex($keys['public_key']),
-            'warning' => 'Store this API key securely — it cannot be retrieved again'
+            'warning' => 'Store this API key securely — it cannot be retrieved again',
+            'mcp_config' => $mcp_config,
+            'prompt_snippet' => $prompt_snippet,
         ]);
         break;
 

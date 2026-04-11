@@ -98,6 +98,14 @@ try {
         'public_key_hex' => bin2hex($keys['public_key']),
         'credits' => 100,
         'warning' => 'Store this API key securely — it cannot be retrieved again. This key is also your encryption secret.',
+        'mcp_config' => [
+            'roots' => [
+                'type' => 'stdio',
+                'command' => 'node',
+                'args' => ['/path/to/roots-mcp/server.js'],
+                'env' => ['ROOTS_API_KEY' => $raw_key],
+            ],
+        ],
     ]);
 } catch (\Exception $e) {
     $pdo->rollBack();
