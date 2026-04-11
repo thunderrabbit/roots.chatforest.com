@@ -169,6 +169,37 @@ if ($credit_row) {
     )->execute([$auth_account_id, $period_start]);
 }
 
+// === Waitlist status (operator-only) ===
+if ($resource === "waitlist" && ($segments[3] ?? "") === "status" && $method === "GET") {
+    if ($auth_actor['account_type'] !== 'operator') {
+        http_response_code(403);
+        echo json_encode(['error' => 'Forbidden']);
+        exit;
+    }
+
+    $total_stmt = $pdo->query("SELECT COUNT(*) FROM waitlist");
+    $total = (int) $total_stmt->fetchColumn();
+
+    $verified_stmt = $pdo->query("SELECT COUNT(*) FROM waitlist WHERE verified = 1");
+    $verified = (int) $verified_stmt->fetchColumn();
+
+    $recent_stmt = $pdo->query(
+        "SELECT email, verified, created_at FROM waitlist ORDER BY created_at DESC LIMIT 10"
+    );
+    $recent = $recent_stmt->fetchAll(\PDO::FETCH_ASSOC);
+    foreach ($recent as &$r) {
+        $r['verified'] = (bool) $r['verified'];
+    }
+
+    echo json_encode([
+        'total'      => $total,
+        'verified'   => $verified,
+        'unverified' => $total - $verified,
+        'recent'     => $recent,
+    ]);
+    exit;
+}
+
 // Route to resource handlers
 $handler_map = [
     "whoami"     => "_whoami.php",
