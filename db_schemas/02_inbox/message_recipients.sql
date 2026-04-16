@@ -4,7 +4,7 @@ CREATE TABLE message_recipients (
     recipient_actor_id INT UNSIGNED NOT NULL,
     ciphertext MEDIUMBLOB NOT NULL COMMENT 'sodium_crypto_box encrypted message body',
     nonce VARBINARY(24) NOT NULL COMMENT 'crypto_box nonce',
-    status ENUM('unread','read','archived','deleted') NOT NULL DEFAULT 'unread',
+    status ENUM('unread','read','archived','deleted','seen','in_progress','cancelled','blocked','needs_human') NOT NULL DEFAULT 'unread',
     read_at DATETIME DEFAULT NULL,
     FOREIGN KEY (message_id) REFERENCES messages(message_id),
     FOREIGN KEY (recipient_actor_id) REFERENCES actors(actor_id),

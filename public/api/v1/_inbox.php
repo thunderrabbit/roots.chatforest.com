@@ -5,7 +5,7 @@
  * GET    /inbox                    — list messages for caller (decrypted)
  * GET    /inbox/{message_id}       — get single message (decrypted)
  * POST   /inbox                    — send message (encrypted per-recipient)
- * PATCH  /inbox/{recipient_id}     — update status (read/archived/deleted)
+ * PATCH  /inbox/{recipient_id}     — update status (read/archived/deleted/seen/in_progress/cancelled/blocked/needs_human)
  */
 
 $method = $_SERVER['REQUEST_METHOD'];
@@ -77,7 +77,7 @@ switch ($method) {
             $limit = min((int)($_GET['limit'] ?? 50), 100);
             $offset = max((int)($_GET['offset'] ?? 0), 0);
 
-            $valid_statuses = ['unread', 'read', 'archived', 'all'];
+            $valid_statuses = ['unread', 'read', 'archived', 'seen', 'in_progress', 'cancelled', 'blocked', 'needs_human', 'all'];
             if (!in_array($status_filter, $valid_statuses)) {
                 $status_filter = 'unread';
             }
@@ -269,9 +269,9 @@ switch ($method) {
 
         $input = json_decode(file_get_contents('php://input'), true);
         $new_status = $input['status'] ?? null;
-        if (!in_array($new_status, ['read', 'archived', 'deleted'])) {
+        if (!in_array($new_status, ['read', 'archived', 'deleted', 'seen', 'in_progress', 'cancelled', 'blocked', 'needs_human'])) {
             http_response_code(400);
-            echo json_encode(['error' => 'status must be read, archived, or deleted']);
+            echo json_encode(['error' => 'status must be one of: read, archived, deleted, seen, in_progress, cancelled, blocked, needs_human']);
             break;
         }
 
